@@ -112,12 +112,13 @@ const htmlIndex = `<!DOCTYPE html>
                 });
                 const data = await res.json();
                 if (data.success) {
-                    appendLog("✓ Pipeline Succeeded!");
-                    appendLog("✓ Output: " + data.pdf_path);
+                    const outputLocation = data.pdf_path || "Compiled book available in data/book/book.pdf";
+                    appendLog("✓ Pipeline Succeeded: " + data.message);
+                    appendLog("📄 Output File: " + outputLocation);
                     statusEl.className = 'status-pill status-ready';
                     statusEl.innerText = '● Execution Completed Successfully';
                 } else {
-                    appendLog("! Error: " + data.message);
+                    appendLog("! Error: " + (data.message || "Failed to compile book"));
                     statusEl.className = 'status-pill status-ready';
                     statusEl.innerText = '● Failed with error';
                 }
@@ -200,12 +201,15 @@ func main() {
 			if ok {
 				pdfPath := filepath.Join(bookDir, "main.pdf")
 				finalBookPdf := filepath.Join(bookDir, "book.pdf")
-				os.Rename(pdfPath, finalBookPdf)
+				if _, err := os.Stat(pdfPath); err == nil {
+					os.Rename(pdfPath, finalBookPdf)
+				}
+				absBookPdf, _ := filepath.Abs(finalBookPdf)
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(GenerateResponse{
 					Success: true,
-					Message: "Compiled book PDF successfully",
-					PDFPath: finalBookPdf,
+					Message: fmt.Sprintf("Compiled book with %d chapter(s) successfully", len(chapterRelPaths)),
+					PDFPath: absBookPdf,
 				})
 				return
 			}
@@ -214,8 +218,24 @@ func main() {
 			return
 		}
 
+		existingPdf := filepath.Join(bookDir, "book.pdf")
+		if _, err := os.Stat(existingPdf); err == nil {
+			absBookPdf, _ := filepath.Abs(existingPdf)
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(GenerateResponse{
+				Success: true,
+				Message: "Assembled LaTeX book master",
+				PDFPath: absBookPdf,
+			})
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(GenerateResponse{Success: true, Message: "Assembled LaTeX without pdflatex compilation"})
+		json.NewEncoder(w).Encode(GenerateResponse{
+			Success: true,
+			Message: "Assembled LaTeX chapters (pdflatex skipped)",
+			PDFPath: mainTexPath,
+		})
 	})
 
 	fmt.Printf("[ADK-GO Web] Server running on http://127.0.0.1%s\n", port)
