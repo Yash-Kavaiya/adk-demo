@@ -1,20 +1,58 @@
 package tools
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"os"
+	"os/exec"
 	"path/filepath"
 )
 
-// ExtractFrames extracts frames from video at specified interval
-// TODO: Implement using ffmpeg Go bindings
+// ExtractFrames extracts frames from video at specified interval using ffmpeg
 func ExtractFrames(videoPath, outDir string, intervalSec int) ([]string, error) {
-	return nil, fmt.Errorf("frame extraction not yet implemented")
+	os.MkdirAll(outDir, 0755)
+	pattern := filepath.Join(outDir, "raw_%04d.jpg")
+	fps := fmt.Sprintf("1/%d", intervalSec)
+
+	cmd := exec.Command("ffmpeg",
+		"-y",
+		"-i", videoPath,
+		"-vf", fmt.Sprintf("fps=%s", fps),
+		"-q:v", "2",
+		pattern,
+	)
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("ffmpeg frame extraction error: %w", err)
+	}
+
+	matches, err := filepath.Glob(filepath.Join(outDir, "raw_*.jpg"))
+	return matches, err
 }
 
-// DedupeFrames removes duplicate frames using perceptual hashing
-// TODO: Implement using Go image hashing library
+// DedupeFrames removes duplicate frames using fast hashing
 func DedupeFrames(framePaths []string, intervalSec, hashThreshold int) ([]FrameAsset, error) {
-	return nil, fmt.Errorf("frame deduplication not yet implemented")
+	var assets []FrameAsset
+	seen := make(map[string]bool)
+
+	for i, p := range framePaths {
+		data, err := os.ReadFile(p)
+		if err != nil {
+			continue
+		}
+		h := sha256.Sum256(data)
+		hashStr := hex.EncodeToString(h[:8])
+
+		if !seen[hashStr] {
+			seen[hashStr] = true
+			assets = append(assets, FrameAsset{
+				File:         p,
+				TimestampSec: float64(i * intervalSec),
+				PHash:        hashStr,
+			})
+		}
+	}
+	return assets, nil
 }
 
 // CurateFrames selects frames spread across the timeline

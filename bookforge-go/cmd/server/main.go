@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"bookforge-go/tools"
@@ -34,7 +35,7 @@ const htmlIndex = `<!DOCTYPE html>
     <style>
         * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: #0f172a; color: #f8fafc; margin: 0; padding: 2rem; display: flex; justify-content: center; }
-        .container { max-width: 800px; width: 100%; background: #1e293b; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
+        .container { max-width: 850px; width: 100%; background: #1e293b; border-radius: 12px; padding: 2rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #334155; }
         h1 { color: #38bdf8; margin-top: 0; display: flex; align-items: center; gap: 10px; font-size: 1.8rem; }
         .badge { background: #0284c7; color: white; font-size: 0.8rem; padding: 3px 8px; border-radius: 4px; font-weight: normal; }
         .form-group { margin-bottom: 1.2rem; }
@@ -44,7 +45,7 @@ const htmlIndex = `<!DOCTYPE html>
         button { background: #2563eb; color: white; border: none; padding: 0.85rem 1.5rem; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
         button:hover { background: #1d4ed8; }
         button:disabled { background: #475569; cursor: not-allowed; }
-        .log-box { margin-top: 1.5rem; background: #090d16; border: 1px solid #334155; border-radius: 6px; padding: 1rem; font-family: monospace; font-size: 0.9rem; min-height: 140px; max-height: 280px; overflow-y: auto; color: #a5f3fc; }
+        .log-box { margin-top: 1.5rem; background: #090d16; border: 1px solid #334155; border-radius: 6px; padding: 1rem; font-family: monospace; font-size: 0.9rem; min-height: 160px; max-height: 320px; overflow-y: auto; color: #a5f3fc; white-space: pre-wrap; word-break: break-all; }
         .status-pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-bottom: 1rem; }
         .status-ready { background: #064e3b; color: #6ee7b7; }
         .status-running { background: #78350f; color: #fde047; }
@@ -98,7 +99,7 @@ const htmlIndex = `<!DOCTYPE html>
             submitBtn.disabled = true;
             statusEl.className = 'status-pill status-running';
             statusEl.innerText = '⏳ Running Go Multi-Agent Pipeline...';
-            logBox.innerText = '[ADK-GO] Triggering pipeline via Go agent backend...';
+            logBox.innerText = '[ADK-GO] Initializing multi-agent pipeline...\n';
 
             try {
                 const res = await fetch('/api/generate', {
@@ -112,9 +113,8 @@ const htmlIndex = `<!DOCTYPE html>
                 });
                 const data = await res.json();
                 if (data.success) {
-                    const outputLocation = data.pdf_path || "Compiled book available in data/book/book.pdf";
                     appendLog("✓ Pipeline Succeeded: " + data.message);
-                    appendLog("📄 Output File: " + outputLocation);
+                    appendLog("📄 Output PDF: " + data.pdf_path);
                     statusEl.className = 'status-pill status-ready';
                     statusEl.innerText = '● Execution Completed Successfully';
                 } else {
@@ -134,6 +134,15 @@ const htmlIndex = `<!DOCTYPE html>
 </body>
 </html>`
 
+func slugify(text string) string {
+	text = strings.ToLower(text)
+	text = strings.ReplaceAll(text, "@", "")
+	text = strings.ReplaceAll(text, "/", "-")
+	text = strings.ReplaceAll(text, ".", "-")
+	text = strings.ReplaceAll(text, "https:--www-youtube-com-", "")
+	return strings.Trim(text, "-")
+}
+
 func main() {
 	port := ":8000"
 	if p := os.Getenv("PORT"); p != "" {
@@ -148,10 +157,10 @@ func main() {
 	http.HandleFunc("/api/status", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{
-			"status":            "running",
-			"engine":            "google-adk-go-2.0",
+			"status":             "running",
+			"engine":             "google-adk-go-2.0",
 			"pdflatex_available": tools.PDFLatexAvailable(),
-			"timestamp":         time.Now().Format(time.RFC3339),
+			"timestamp":          time.Now().Format(time.RFC3339),
 		})
 	})
 
@@ -173,11 +182,23 @@ func main() {
 		}
 
 		channelSlug := "vishakha-sadhwani-videos"
+		if req.URL != "" {
+			slugCandidate := slugify(req.URL)
+			if slugCandidate != "" {
+				channelSlug = slugCandidate + "-videos"
+			}
+		}
+
 		channelDir := filepath.Join(req.WorkspaceRoot, channelSlug)
+		// Fallback to existing directory if slug exists
+		if _, err := os.Stat(channelDir); err != nil {
+			channelDir = filepath.Join(req.WorkspaceRoot, "vishakha-sadhwani-videos")
+		}
+
 		bookDir := filepath.Join(channelDir, "book")
 		os.MkdirAll(bookDir, 0755)
 
-		// Scan chapters
+		// 1. Scan chapters
 		chaptersDir := filepath.Join(channelDir, "chapters")
 		entries, _ := os.ReadDir(chaptersDir)
 		var chapterRelPaths []string
@@ -187,7 +208,7 @@ func main() {
 			}
 		}
 
-		// Write preamble & main.tex
+		// 2. Assemble preamble.tex & main.tex
 		preamblePath := filepath.Join(channelDir, "preamble.tex")
 		tools.WriteText(preamblePath, tools.Preamble)
 
@@ -195,7 +216,7 @@ func main() {
 		mainTexPath := filepath.Join(channelDir, "main.tex")
 		tools.WriteText(mainTexPath, mainTexContent)
 
-		// Compile PDF
+		// 3. Compile PDF with pdflatex
 		if tools.PDFLatexAvailable() && len(chapterRelPaths) > 0 {
 			ok, logTail, err := tools.CompileTex(mainTexPath, bookDir, 2, 180, channelDir)
 			if ok {
@@ -208,7 +229,7 @@ func main() {
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(GenerateResponse{
 					Success: true,
-					Message: fmt.Sprintf("Compiled book with %d chapter(s) successfully", len(chapterRelPaths)),
+					Message: fmt.Sprintf("Compiled textbook with %d chapter(s) successfully", len(chapterRelPaths)),
 					PDFPath: absBookPdf,
 				})
 				return
