@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// LaTeX special characters that need escaping
+// LaTeX special characters and Unicode symbols that need escaping
 var latexSpecials = map[rune]string{
 	'&':  `\&`,
 	'%':  `\%`,
@@ -19,9 +19,34 @@ var latexSpecials = map[rune]string{
 	'~':  `\textasciitilde{}`,
 	'^':  `\textasciicircum{}`,
 	'\\': `\textbackslash{}`,
+	'≥':  `$\ge$`,
+	'≤':  `$\le$`,
+	'≈':  `$\approx$`,
+	'≠':  `$\neq$`,
+	'×':  `$\times$`,
+	'±':  `$\pm$`,
+	'÷':  `$\div$`,
+	'∞':  `$\infty$`,
+	'→':  `$\to$`,
+	'←':  `$\leftarrow$`,
+	'↔':  `$\leftrightarrow$`,
+	'⇒':  `$\implies$`,
+	'µ':  `$\mu$`,
+	'•':  `\textbullet{}`,
+	'—':  `---`,
+	'–':  `--`,
+	'“':  `\` + "`",
+	'”':  `''`,
+	'‘':  `\` + "`",
+	'’':  `'`,
+	'…':  `\dots{}`,
+	'™':  `\texttrademark{}`,
+	'®':  `\textregistered{}`,
+	'©':  `\textcopyright{}`,
+	'°':  `$^\circ$`,
 }
 
-// TexEscape escapes LaTeX special characters
+// TexEscape escapes LaTeX special characters and Unicode symbols
 func TexEscape(text string) string {
 	var result strings.Builder
 	for _, ch := range text {
@@ -34,14 +59,24 @@ func TexEscape(text string) string {
 	return result.String()
 }
 
-// RenderTableFragment renders a table spec to LaTeX booktabs fragment
+// RenderTableFragment renders a table spec to LaTeX booktabs fragment with anti-overcut column widths
 func RenderTableFragment(spec TableSpec, destPath string) (string, error) {
 	ncols := len(spec.Headers)
 	if ncols == 0 {
 		ncols = 1
 	}
 
-	colSpec := strings.Repeat("l", ncols)
+	var colSpec string
+	if ncols <= 2 {
+		colSpec = "ll"
+	} else if ncols == 3 {
+		colSpec = "p{0.25\\textwidth}p{0.35\\textwidth}p{0.35\\textwidth}"
+	} else if ncols == 4 {
+		colSpec = "p{0.20\\textwidth}p{0.25\\textwidth}p{0.25\\textwidth}p{0.25\\textwidth}"
+	} else {
+		width := fmt.Sprintf("%.2f\\textwidth", 0.92/float64(ncols))
+		colSpec = strings.Repeat(fmt.Sprintf("p{%s}", width), ncols)
+	}
 	
 	var lines []string
 	lines = append(lines, `\begin{table}[htbp]`)
@@ -86,27 +121,93 @@ func RenderTableFragment(spec TableSpec, destPath string) (string, error) {
 }
 
 // RenderChart renders a chart spec to PDF using plotting library
-// TODO: Implement using gonum/plot or similar
 func RenderChart(spec ChartSpec, destPath string) (string, error) {
 	return "", fmt.Errorf("chart rendering not yet implemented - need Go plotting library")
 }
 
 // Preamble is the shared LaTeX document preamble
 const Preamble = `\documentclass[11pt,openany]{book}
+\usepackage{etex}
+\usepackage[utf8]{inputenc}
+\usepackage{newunicodechar}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{textcomp}
 \usepackage{booktabs}
+\usepackage{xcolor}
+\definecolor{primaryblue}{RGB}{37, 99, 235}
+\definecolor{accentindigo}{RGB}{79, 70, 229}
+\definecolor{softblue}{RGB}{238, 242, 255}
+\definecolor{softgreen}{RGB}{236, 253, 245}
+\definecolor{accentgreen}{RGB}{16, 185, 129}
+\definecolor{darkslate}{RGB}{30, 41, 59}
+\definecolor{lightgray}{RGB}{241, 245, 249}
+\definecolor{bordergray}{RGB}{203, 213, 225}
+
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,shapes,shapes.geometric}
+\usetikzlibrary{positioning,arrows.meta,shapes,shapes.geometric,shadows,calc,fit}
+
+\tikzset{
+    every node/.style={align=center},
+    modernbox/.style={
+        rectangle,
+        draw=primaryblue,
+        fill=softblue,
+        thick,
+        rounded corners=4pt,
+        minimum height=1.0cm,
+        minimum width=2.4cm,
+        inner sep=6pt,
+        align=center,
+        font=\small\bfseries\color{darkslate},
+        drop shadow={opacity=0.15, shadow xshift=1.5pt, shadow yshift=-1.5pt}
+    },
+    accentbox/.style={
+        rectangle,
+        draw=accentgreen,
+        fill=softgreen,
+        thick,
+        rounded corners=4pt,
+        minimum height=1.0cm,
+        minimum width=2.4cm,
+        inner sep=6pt,
+        align=center,
+        font=\small\bfseries\color{darkslate},
+        drop shadow={opacity=0.15, shadow xshift=1.5pt, shadow yshift=-1.5pt}
+    },
+    neutralbox/.style={
+        rectangle,
+        draw=bordergray,
+        fill=lightgray,
+        thick,
+        rounded corners=4pt,
+        minimum height=1.0cm,
+        minimum width=2.4cm,
+        inner sep=6pt,
+        align=center,
+        font=\small\color{darkslate},
+        drop shadow={opacity=0.10, shadow xshift=1pt, shadow yshift=-1pt}
+    },
+    flowarrow/.style={
+        ->,
+        >={Stealth[length=6pt, width=5pt]},
+        thick,
+        color=primaryblue,
+        font=\footnotesize\color{darkslate}
+    }
+}
 \usepackage{morefloats}
 \extrafloats{100}
+\usepackage{microtype}
 \usepackage{enumitem}
-\usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{caption}
-\setlength{\parskip}{4pt}
+\setlength{\parskip}{5pt}
 \setlength{\parindent}{0pt}
-\hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black}
+\hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=accentindigo}
+\sloppy
+\emergencystretch=3em
 `
 
 // ChapterWrapper wraps a chapter body for standalone compilation

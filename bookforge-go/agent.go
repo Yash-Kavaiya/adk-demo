@@ -257,14 +257,15 @@ Compose a complete LaTeX chapter body following this structure:
 - Learning Objectives (itemize)
 - One section per concept
 - Key Data and Comparisons (tables and charts)
-- Conceptual Models (TikZ diagrams)
+- Conceptual Models (render EVERY diagram spec from analysis using modernbox, accentbox, neutralbox, and flowarrow; use top-to-bottom or left-to-right layouts with text width=3.2cm and align=center so text never overcuts)
 - Key Takeaways (itemize)
 - Glossary (description list)
 - Exercises and Solutions
 
-Rules:
+Typesetting & Overflow rules:
 - Reference ONLY files in the assets manifest
-- Escape LaTeX special characters
+- Escape special characters in prose: %, &, #, _, $, <, >
+- Text should NEVER overflow margins (no overfull hbox). Break long technical URLs or identifiers with linebreaks
 - No documentclass, usepackage, or begin/end document
 - Target 1200-2500 words
 
