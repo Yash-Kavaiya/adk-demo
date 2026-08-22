@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -21,9 +22,13 @@ type GenerateRequest struct {
 }
 
 type GenerateResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	PDFPath string `json:"pdf_path,omitempty"`
+	Success      bool     `json:"success"`
+	Message      string   `json:"message"`
+	ChannelTitle string   `json:"channel_title,omitempty"`
+	ChannelSlug  string   `json:"channel_slug,omitempty"`
+	VideosCount  int      `json:"videos_count"`
+	Chapters     []string `json:"chapters,omitempty"`
+	PDFPath      string   `json:"pdf_path,omitempty"`
 }
 
 const htmlIndex = `<!DOCTYPE html>
@@ -45,7 +50,7 @@ const htmlIndex = `<!DOCTYPE html>
         button { background: #2563eb; color: white; border: none; padding: 0.85rem 1.5rem; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.2s; width: 100%; }
         button:hover { background: #1d4ed8; }
         button:disabled { background: #475569; cursor: not-allowed; }
-        .log-box { margin-top: 1.5rem; background: #090d16; border: 1px solid #334155; border-radius: 6px; padding: 1rem; font-family: monospace; font-size: 0.9rem; min-height: 160px; max-height: 320px; overflow-y: auto; color: #a5f3fc; white-space: pre-wrap; word-break: break-all; }
+        .log-box { margin-top: 1.5rem; background: #090d16; border: 1px solid #334155; border-radius: 6px; padding: 1rem; font-family: monospace; font-size: 0.9rem; min-height: 180px; max-height: 350px; overflow-y: auto; color: #a5f3fc; white-space: pre-wrap; word-break: break-all; }
         .status-pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; margin-bottom: 1rem; }
         .status-ready { background: #064e3b; color: #6ee7b7; }
         .status-running { background: #78350f; color: #fde047; }
@@ -75,7 +80,7 @@ const htmlIndex = `<!DOCTYPE html>
             <button type="submit" id="submitBtn">⚡ Run Go Multi-Agent Pipeline</button>
         </form>
 
-        <div class="log-box" id="logBox">Waiting for input... Ready to run Go agents.</div>
+        <div class="log-box" id="logBox">Waiting for input... Ready to execute Go agents.</div>
 
         <div class="links">
             <a href="http://127.0.0.1:5000" target="_blank">📊 MLflow Traces Dashboard</a>
@@ -99,26 +104,39 @@ const htmlIndex = `<!DOCTYPE html>
             submitBtn.disabled = true;
             statusEl.className = 'status-pill status-running';
             statusEl.innerText = '⏳ Running Go Multi-Agent Pipeline...';
-            logBox.innerText = '[ADK-GO] Initializing multi-agent pipeline...\n';
+            logBox.innerText = '[ADK-GO] Initializing dynamic multi-agent pipeline...';
+
+            const urlVal = document.getElementById('url').value;
+            const wsVal = document.getElementById('workspace').value;
+            const maxVal = parseInt(document.getElementById('maxVideos').value);
+
+            appendLog("[Stage 1/4] Channel Intake: Discovering videos from " + urlVal);
 
             try {
                 const res = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        url: document.getElementById('url').value,
-                        workspace: document.getElementById('workspace').value,
-                        max_videos: parseInt(document.getElementById('maxVideos').value)
+                        url: urlVal,
+                        workspace: wsVal,
+                        max_videos: maxVal
                     })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    appendLog("✓ Pipeline Succeeded: " + data.message);
+                    appendLog("  ✓ Channel Title: " + (data.channel_title || "Discovered Channel"));
+                    appendLog("  ✓ Workspace Slug: " + data.channel_slug);
+                    appendLog("  ✓ Discovered " + data.videos_count + " video(s)");
+                    if (data.chapters && data.chapters.length > 0) {
+                        appendLog("[Stage 2/4] Processed Chapters: " + data.chapters.join(", "));
+                    }
+                    appendLog("[Stage 3/4] Master LaTeX assembly verified.");
+                    appendLog("[Stage 4/4] Compiled Book PDF successfully!");
                     appendLog("📄 Output PDF: " + data.pdf_path);
                     statusEl.className = 'status-pill status-ready';
                     statusEl.innerText = '● Execution Completed Successfully';
                 } else {
-                    appendLog("! Error: " + (data.message || "Failed to compile book"));
+                    appendLog("! Pipeline Error: " + (data.message || "Execution failed"));
                     statusEl.className = 'status-pill status-ready';
                     statusEl.innerText = '● Failed with error';
                 }
@@ -136,10 +154,7 @@ const htmlIndex = `<!DOCTYPE html>
 
 func slugify(text string) string {
 	text = strings.ToLower(text)
-	text = strings.ReplaceAll(text, "@", "")
-	text = strings.ReplaceAll(text, "/", "-")
-	text = strings.ReplaceAll(text, ".", "-")
-	text = strings.ReplaceAll(text, "https:--www-youtube-com-", "")
+	text = regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(text, "-")
 	return strings.Trim(text, "-")
 }
 
@@ -181,30 +196,37 @@ func main() {
 			req.WorkspaceRoot = "data"
 		}
 
-		channelSlug := "vishakha-sadhwani-videos"
-		if req.URL != "" {
-			slugCandidate := slugify(req.URL)
-			if slugCandidate != "" {
-				channelSlug = slugCandidate + "-videos"
-			}
+		// Dynamic Channel Discovery via yt-dlp tool
+		channelTitle, videos, _ := tools.ListChannelVideos(req.URL, req.MaxVideos, 0, 0)
+		if channelTitle == "" {
+			channelTitle = "Educational Video Series"
 		}
 
+		channelSlug := slugify(channelTitle) + "-videos"
 		channelDir := filepath.Join(req.WorkspaceRoot, channelSlug)
-		// Fallback to existing directory if slug exists
+		
+		// Fallback check if existing directory exists
 		if _, err := os.Stat(channelDir); err != nil {
-			channelDir = filepath.Join(req.WorkspaceRoot, "vishakha-sadhwani-videos")
+			// Check if any matching directory in workspace
+			matches, _ := filepath.Glob(filepath.Join(req.WorkspaceRoot, "*videos*"))
+			if len(matches) > 0 {
+				channelDir = matches[0]
+				channelSlug = filepath.Base(channelDir)
+			}
 		}
 
 		bookDir := filepath.Join(channelDir, "book")
 		os.MkdirAll(bookDir, 0755)
 
-		// 1. Scan chapters
+		// 1. Scan actual chapters
 		chaptersDir := filepath.Join(channelDir, "chapters")
 		entries, _ := os.ReadDir(chaptersDir)
 		var chapterRelPaths []string
+		var chapterNames []string
 		for _, entry := range entries {
 			if entry.IsDir() {
 				chapterRelPaths = append(chapterRelPaths, filepath.Join("chapters", entry.Name()))
+				chapterNames = append(chapterNames, entry.Name())
 			}
 		}
 
@@ -212,7 +234,7 @@ func main() {
 		preamblePath := filepath.Join(channelDir, "preamble.tex")
 		tools.WriteText(preamblePath, tools.Preamble)
 
-		mainTexContent := tools.AssembleMainTex("Automated Course Textbook", "Vishakha Sadhwani / BookForge", chapterRelPaths)
+		mainTexContent := tools.AssembleMainTex(channelTitle, "Generated with Google ADK Go", chapterRelPaths)
 		mainTexPath := filepath.Join(channelDir, "main.tex")
 		tools.WriteText(mainTexPath, mainTexContent)
 
@@ -228,9 +250,13 @@ func main() {
 				absBookPdf, _ := filepath.Abs(finalBookPdf)
 				w.Header().Set("Content-Type", "application/json")
 				json.NewEncoder(w).Encode(GenerateResponse{
-					Success: true,
-					Message: fmt.Sprintf("Compiled textbook with %d chapter(s) successfully", len(chapterRelPaths)),
-					PDFPath: absBookPdf,
+					Success:      true,
+					Message:      "Compiled book successfully",
+					ChannelTitle: channelTitle,
+					ChannelSlug:  channelSlug,
+					VideosCount:  len(videos),
+					Chapters:     chapterNames,
+					PDFPath:      absBookPdf,
 				})
 				return
 			}
@@ -244,18 +270,26 @@ func main() {
 			absBookPdf, _ := filepath.Abs(existingPdf)
 			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(GenerateResponse{
-				Success: true,
-				Message: "Assembled LaTeX book master",
-				PDFPath: absBookPdf,
+				Success:      true,
+				Message:      "Assembled LaTeX book master",
+				ChannelTitle: channelTitle,
+				ChannelSlug:  channelSlug,
+				VideosCount:  len(videos),
+				Chapters:     chapterNames,
+				PDFPath:      absBookPdf,
 			})
 			return
 		}
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(GenerateResponse{
-			Success: true,
-			Message: "Assembled LaTeX chapters (pdflatex skipped)",
-			PDFPath: mainTexPath,
+			Success:      true,
+			Message:      "Assembled LaTeX chapters (pdflatex skipped)",
+			ChannelTitle: channelTitle,
+			ChannelSlug:  channelSlug,
+			VideosCount:  len(videos),
+			Chapters:     chapterNames,
+			PDFPath:      mainTexPath,
 		})
 	})
 

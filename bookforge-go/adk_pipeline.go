@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"time"
 
 	"bookforge-go/tools"
@@ -17,6 +19,7 @@ import (
 type AgentContext struct {
 	ChannelURL    string
 	WorkspaceRoot string
+	ChannelTitle  string
 	ChannelSlug   string
 	MaxVideos     int
 	VideoRecords  []tools.YouTubeVideo
@@ -24,21 +27,37 @@ type AgentContext struct {
 	CompiledPDF   string
 }
 
+func slugify(text string) string {
+	text = strings.ToLower(text)
+	text = regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(text, "-")
+	return strings.Trim(text, "-")
+}
+
 // 1. ChannelIntakeAgent (Deterministic BaseAgent)
 type IntakeAgent struct{}
 
 func (a *IntakeAgent) Name() string { return "channel_intake" }
 func (a *IntakeAgent) Run(ctx context.Context, actx *AgentContext) error {
-	fmt.Println("\n[Agent: channel_intake] Resolving channel videos...")
+	fmt.Printf("\n[Agent: channel_intake] Discovering channel metadata for: %s\n", actx.ChannelURL)
 	title, videos, err := tools.ListChannelVideos(actx.ChannelURL, actx.MaxVideos, 0, 0)
 	if err != nil || len(videos) == 0 {
-		fmt.Println("  (Notice: Falling back to existing cached manifests if offline)")
-		videos = []tools.YouTubeVideo{
-			{VideoID: "N0EUVY6EPcA", Title: "Docker Crash Course for Beginners", URL: "https://www.youtube.com/watch?v=N0EUVY6EPcA", Duration: 1200},
-		}
+		fmt.Printf("  (Notice: yt-dlp notice: %v; verifying existing workspace directories)\n", err)
+	}
+
+	if title != "" {
+		actx.ChannelTitle = title
+		actx.ChannelSlug = slugify(title) + "-videos"
+	}
+	if actx.ChannelSlug == "" || actx.ChannelSlug == "-videos" {
+		actx.ChannelSlug = "vishakha-sadhwani-videos"
 	}
 	actx.VideoRecords = videos
-	fmt.Printf("  ✓ Resolved '%s' with %d video(s)\n", title, len(videos))
+
+	channelDir := filepath.Join(actx.WorkspaceRoot, actx.ChannelSlug)
+	os.MkdirAll(channelDir, 0755)
+
+	fmt.Printf("  ✓ Channel Title: '%s' | Slug: %s\n", actx.ChannelTitle, actx.ChannelSlug)
+	fmt.Printf("  ✓ Videos Discovered: %d\n", len(videos))
 	return nil
 }
 
@@ -47,10 +66,19 @@ type MediaAgent struct{}
 
 func (a *MediaAgent) Name() string { return "media_acquisition" }
 func (a *MediaAgent) Run(ctx context.Context, actx *AgentContext, v tools.YouTubeVideo, chapterDir string) error {
-	fmt.Printf("\n[Agent: media_acquisition] Processing video %s (%s)...\n", v.VideoID, v.Title)
+	fmt.Printf("\n[Agent: media_acquisition] Processing video [%s] %s...\n", v.VideoID, v.Title)
 	figDir := filepath.Join(chapterDir, "figures")
 	os.MkdirAll(figDir, 0755)
-	fmt.Printf("  ✓ Media and slide keyframe assets verified at %s\n", figDir)
+
+	// Check if already downloaded or extract
+	videoFile := filepath.Join(chapterDir, "video.mp4")
+	if _, err := os.Stat(videoFile); err == nil {
+		fmt.Println("  ✓ Video already acquired locally.")
+	} else if v.URL != "" {
+		fmt.Printf("  Downloading stream via yt-dlp to %s...\n", videoFile)
+		tools.DownloadVideo(v.URL, chapterDir, 720)
+	}
+
 	return nil
 }
 
@@ -63,17 +91,16 @@ func (a *AssetAgent) Run(ctx context.Context, actx *AgentContext, chapterDir str
 	tablesDir := filepath.Join(chapterDir, "tables")
 	os.MkdirAll(tablesDir, 0755)
 
-	// Render sample table fragment with proportional wrapping p{} columns
 	sampleTable := tools.TableSpec{
-		Caption: "Key Technology Stack & Architectural Specifications",
-		Headers: []string{"Component", "Role", "Characteristics"},
+		Caption: "Core Concept Characteristics and Execution Flow",
+		Headers: []string{"Stage", "Function", "Operational Guarantee"},
 		Rows: [][]string{
-			{"Container Daemon", "Runtime Engine", "Isolated cgroups and namespaces $\\approx$ standard"},
-			{"Base Images", "Filesystem Layer", "Lightweight Alpine $\\le$ 15MB footprint"},
+			{"Intake Layer", "Manifest Ingestion", "Idempotent checksum $\\approx$ standard"},
+			{"Processing", "Media Acquisition", "Frame extraction $\\le$ 12 keyframes"},
+			{"Compilation", "Typeset PDF", "Zero overfull margin tolerance"},
 		},
 	}
 	tools.RenderTableFragment(sampleTable, filepath.Join(tablesDir, "table_1.tex"))
-	fmt.Printf("  ✓ Generated table fragment at %s\n", filepath.Join(tablesDir, "table_1.tex"))
 	return nil
 }
 
@@ -89,11 +116,13 @@ func (a *CompilerAgent) Run(ctx context.Context, actx *AgentContext) error {
 
 	// Scan chapters
 	chaptersDir := filepath.Join(channelDir, "chapters")
-	entries, _ := os.ReadDir(chaptersDir)
+	entries, err := os.ReadDir(chaptersDir)
 	var relPaths []string
-	for _, entry := range entries {
-		if entry.IsDir() {
-			relPaths = append(relPaths, filepath.Join("chapters", entry.Name()))
+	if err == nil {
+		for _, entry := range entries {
+			if entry.IsDir() {
+				relPaths = append(relPaths, filepath.Join("chapters", entry.Name()))
+			}
 		}
 	}
 	actx.ChapterPaths = relPaths
@@ -102,7 +131,11 @@ func (a *CompilerAgent) Run(ctx context.Context, actx *AgentContext) error {
 	preamblePath := filepath.Join(channelDir, "preamble.tex")
 	tools.WriteText(preamblePath, tools.Preamble)
 
-	mainTexContent := tools.AssembleMainTex("Automated Course Textbook", "Vishakha Sadhwani / BookForge", relPaths)
+	title := actx.ChannelTitle
+	if title == "" {
+		title = "Automated Course Textbook"
+	}
+	mainTexContent := tools.AssembleMainTex(title, "Generated with Google ADK Go", relPaths)
 	mainTexPath := filepath.Join(channelDir, "main.tex")
 	tools.WriteText(mainTexPath, mainTexContent)
 
@@ -116,23 +149,28 @@ func (a *CompilerAgent) Run(ctx context.Context, actx *AgentContext) error {
 				os.Rename(pdfPath, finalBookPdf)
 			}
 			actx.CompiledPDF, _ = filepath.Abs(finalBookPdf)
-			fmt.Printf("  ✓ Compilation complete (%v) -> %s\n", time.Since(start).Round(time.Millisecond), actx.CompiledPDF)
+			fmt.Printf("  ✓ Compilation complete in %v -> %s\n", time.Since(start).Round(time.Millisecond), actx.CompiledPDF)
 			return nil
 		}
 		return fmt.Errorf("pdflatex error: %s (%v)", logTail, err)
 	}
-	return nil
+
+	existingPdf := filepath.Join(bookDir, "book.pdf")
+	if _, err := os.Stat(existingPdf); err == nil {
+		actx.CompiledPDF, _ = filepath.Abs(existingPdf)
+		return nil
+	}
+
+	return fmt.Errorf("no chapters available to compile in %s", chaptersDir)
 }
 
-// RunPipeline runs the full Google ADK Go multi-agent sequence end-to-end
+// RunPipeline runs the full Google ADK Go multi-agent sequence end-to-end dynamically
 func RunPipeline(channelURL, workspaceRoot string, maxVideos int) (*AgentContext, error) {
 	ctx := context.Background()
-	slug := "vishakha-sadhwani-videos"
 
 	actx := &AgentContext{
 		ChannelURL:    channelURL,
 		WorkspaceRoot: workspaceRoot,
-		ChannelSlug:   slug,
 		MaxVideos:     maxVideos,
 	}
 
@@ -141,19 +179,23 @@ func RunPipeline(channelURL, workspaceRoot string, maxVideos int) (*AgentContext
 	assets := &AssetAgent{}
 	compiler := &CompilerAgent{}
 
-	// 1. Intake
+	// 1. Intake: Dynamically resolve channel
 	if err := intake.Run(ctx, actx); err != nil {
 		return nil, err
 	}
 
 	// 2. Per-video Production
-	for _, v := range actx.VideoRecords {
-		chDir := filepath.Join(workspaceRoot, slug, "chapters", "01_docker-crash-course-for-beginners-docker-contain")
-		if err := media.Run(ctx, actx, v, chDir); err != nil {
-			log.Printf("Media agent error: %v", err)
-		}
-		if err := assets.Run(ctx, actx, chDir); err != nil {
-			log.Printf("Asset agent error: %v", err)
+	channelDir := filepath.Join(workspaceRoot, actx.ChannelSlug)
+	if len(actx.VideoRecords) > 0 {
+		for i, v := range actx.VideoRecords {
+			chapterSlug := fmt.Sprintf("%02d_%s", i+1, slugify(v.Title))
+			chDir := filepath.Join(channelDir, "chapters", chapterSlug)
+			if err := media.Run(ctx, actx, v, chDir); err != nil {
+				log.Printf("Media agent error: %v", err)
+			}
+			if err := assets.Run(ctx, actx, chDir); err != nil {
+				log.Printf("Asset agent error: %v", err)
+			}
 		}
 	}
 
@@ -170,12 +212,16 @@ func main() {
 	fmt.Println("   Google ADK Go 2.0 (adk-go) Multi-Agent Production      ")
 	fmt.Println("==========================================================")
 
+	url := "https://www.youtube.com/@vishakha.sadhwani"
 	ws := "data"
 	if len(os.Args) > 1 {
-		ws = os.Args[1]
+		url = os.Args[1]
+	}
+	if len(os.Args) > 2 {
+		ws = os.Args[2]
 	}
 
-	actx, err := RunPipeline("https://www.youtube.com/@vishakha.sadhwani", ws, 2)
+	actx, err := RunPipeline(url, ws, 2)
 	if err != nil {
 		log.Fatalf("Pipeline execution failed: %v", err)
 	}
