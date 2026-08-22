@@ -1,0 +1,49 @@
+{
+  "eval_set_id": "bookforge_smoke",
+  "name": "BookForge smoke evals",
+  "description": "Minimal eval set. Running it requires network access to YouTube plus a valid Gemini credential; use a tiny channel or set BOOKFORGE_MAX_VIDEOS=1. Run with: adk eval bookforge eval/bookforge.evalset.json",
+  "eval_cases": [
+    {
+      "eval_id": "intake_missing_url_fails_loudly",
+      "conversation": [
+        {
+          "invocation_id": "inv-1",
+          "user_content": {
+            "parts": [{ "text": "make me a book" }],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [{ "text": "No YouTube channel URL found" }],
+            "role": "model"
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bookforge",
+        "user_id": "eval",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "single_video_channel_produces_book",
+      "conversation": [
+        {
+          "invocation_id": "inv-2",
+          "user_content": {
+            "parts": [{ "text": "Create a complete book from this YouTube channel: https://www.youtube.com/@YourTestChannel" }],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [{ "text": "Book compiled" }],
+            "role": "model"
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bookforge",
+        "user_id": "eval",
+        "state": {}
+      }
+    }
+  ]
+}

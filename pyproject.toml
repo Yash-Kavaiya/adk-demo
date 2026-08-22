@@ -1,0 +1,55 @@
+[project]
+name = "bookforge"
+version = "0.1.0"
+description = "Multi-agent Google ADK system that turns a YouTube channel into a compiled LaTeX book."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "google-adk>=1.5,<3",
+    "openai>=1.40",
+    "yt-dlp>=2025.1.1",
+    "faster-whisper>=1.1",
+    "imagehash>=4.3",
+    "Pillow>=10.0",
+    "matplotlib>=3.8",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.2",
+    "python-dotenv>=1.0",
+]
+
+[project.optional-dependencies]
+lint = ["ruff>=0.8", "codespell>=2.3", "ty>=0.0.1a5"]
+
+[dependency-groups]
+dev = ["pytest>=8.0", "pytest-asyncio>=0.23"]
+
+[project.scripts]
+bookforge = "bookforge.main:cli_entry"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["bookforge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.codespell]
+# Skip generated pipeline output (workspace artifacts contain compressed PDF streams).
+skip = "./data,data,.venv,*.pdf"
+
+[tool.ty.src]
+include = ["bookforge", "tests"]
+
+# ADK agents and matplotlib Text expose dynamic attributes that static
+# analysis cannot see; these rules stay off project-wide.
+[tool.ty.rules]
+unknown-argument = "ignore"      # pydantic extra=allow on ADK BaseAgent subclasses
+unresolved-attribute = "ignore"  # dynamic attrs: Session.state, Text.set_ha, LlmAgent.tools
+# SequentialAgent/LoopAgent are deprecated in google-adk 2.x in favor of Workflow,
+# but Workflow "cannot yet be used as an LlmAgent sub-agent" (per the deprecation
+# notice), so the graph intentionally stays on the current classes until then.
+deprecated = "ignore"
