@@ -77,9 +77,14 @@ func buildBookForgeRootAgent() (agent.Agent, error) {
 					}
 				}
 
-				slug := "itsdecodingai-videos"
+				slug := "vishakha-sadhwani-videos"
 				if title != "" {
-					slug = strings.ToLower(regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(title, "-")) + "-videos"
+					slugClean := strings.ToLower(title)
+					slugClean = regexp.MustCompile(`[^a-z0-9]+`).ReplaceAllString(slugClean, "-")
+					slugClean = strings.Trim(slugClean, "-")
+					if slugClean != "" {
+						slug = slugClean + "-videos"
+					}
 				}
 
 				channelDir := fmt.Sprintf("data/%s", slug)

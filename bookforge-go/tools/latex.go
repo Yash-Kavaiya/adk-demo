@@ -250,13 +250,21 @@ func CompileTex(mainTexPath, buildDir string, passes, timeoutSec int, cwd string
 		return false, "pdflatex not found on PATH", fmt.Errorf("pdflatex not available")
 	}
 
+	absBuildDir, _ := filepath.Abs(buildDir)
+	texFileToPass := mainTexPath
+	if cwd != "" {
+		absCwd, _ := filepath.Abs(cwd)
+		cwd = absCwd
+		texFileToPass = "main.tex"
+	}
+
 	var lastLog string
 	for i := 0; i < passes; i++ {
 		cmd := exec.Command("pdflatex",
 			"-interaction=nonstopmode",
 			"-halt-on-error",
-			fmt.Sprintf("-output-directory=%s", buildDir),
-			mainTexPath,
+			fmt.Sprintf("-output-directory=%s", absBuildDir),
+			texFileToPass,
 		)
 		if cwd != "" {
 			cmd.Dir = cwd
