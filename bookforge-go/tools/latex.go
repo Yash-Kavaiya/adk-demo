@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"os/exec"
 	"regexp"
 	"strings"
 )
@@ -140,15 +141,37 @@ func AssembleMainTex(bookTitle, authorLine string, chapterPaths []string) string
 }
 
 // CompileTex compiles LaTeX to PDF using pdflatex
-// TODO: Implement using os/exec to call pdflatex
 func CompileTex(mainTexPath, buildDir string, passes, timeoutSec int, cwd string) (bool, string, error) {
-	return false, "", fmt.Errorf("LaTeX compilation not yet implemented")
+	if !PDFLatexAvailable() {
+		return false, "pdflatex not found on PATH", fmt.Errorf("pdflatex not available")
+	}
+
+	var lastLog string
+	for i := 0; i < passes; i++ {
+		cmd := exec.Command("pdflatex",
+			"-interaction=nonstopmode",
+			"-halt-on-error",
+			fmt.Sprintf("-output-directory=%s", buildDir),
+			mainTexPath,
+		)
+		if cwd != "" {
+			cmd.Dir = cwd
+		}
+
+		out, err := cmd.CombinedOutput()
+		lastLog = string(out)
+		if err != nil {
+			return false, ExtractLatexErrors(lastLog, 5), nil
+		}
+	}
+
+	return true, lastLog, nil
 }
 
 // PDFLatexAvailable checks if pdflatex is on PATH
 func PDFLatexAvailable() bool {
-	// TODO: Check if pdflatex is available
-	return false
+	_, err := exec.LookPath("pdflatex")
+	return err == nil
 }
 
 // FindReferencedFiles extracts all file references from LaTeX

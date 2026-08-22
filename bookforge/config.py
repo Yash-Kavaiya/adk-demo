@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     qa_max_iterations: int = 3
     compile_latex: bool = True  # disable on hosts without pdflatex
 
+    # --- Parallelization (opt-in for safety) ------------------------------
+    max_concurrent_videos: int = 1  # 1=sequential (safe default), 2-3=parallel
+    enable_parallel_videos: bool = False  # explicit opt-in required
+
     # --- Housekeeping ------------------------------------------------------
     workspace_root: Path = Path("data")
     log_level: str = "INFO"
