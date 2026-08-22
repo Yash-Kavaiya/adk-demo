@@ -136,6 +136,8 @@ def render_chart(spec: ChartSpec, dest: Path) -> Path:
 
 PREAMBLE = r"""\documentclass[11pt,openany]{book}
 \usepackage{etex}
+\usepackage[utf8]{inputenc}
+\usepackage{newunicodechar}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb}
@@ -365,8 +367,37 @@ def sanitize_chapter_tex(tex: str) -> str:
         r"\\subseteq\b",
         r"\\infty\b",
     ]
-    for sym in math_symbols:
-        # If preceded and followed by non-$, wrap it in $ $
-        body = re.sub(rf"(?<!\$)\b({sym})(?!\$)", r"$\1$", body)
+    # Convert common Unicode characters that LLMs emit into LaTeX equivalents
+    unicode_map = {
+        "≈": r"$\approx$",
+        "≤": r"$\le$",
+        "≥": r"$\ge$",
+        "≠": r"$\neq$",
+        "×": r"$\times$",
+        "±": r"$\pm$",
+        "÷": r"$\div$",
+        "∞": r"$\infty$",
+        "→": r"$\to$",
+        "←": r"$\leftarrow$",
+        "↔": r"$\leftrightarrow$",
+        "⇒": r"$\implies$",
+        "⇐": r"$\impliedby$",
+        "⇔": r"$\iff$",
+        "µ": r"$\mu$",
+        "•": r"\textbullet{}",
+        "—": r"---",
+        "–": r"--",
+        "“": r"``",
+        "”": r"''",
+        "‘": r"`",
+        "’": r"'",
+        "…": r"\dots{}",
+        "™": r"\texttrademark{}",
+        "®": r"\textregistered{}",
+        "©": r"\textcopyright{}",
+        "°": r"$^\circ$",
+    }
+    for char, repl in unicode_map.items():
+        body = body.replace(char, repl)
 
     return body.strip() + "\n"
