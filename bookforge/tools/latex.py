@@ -154,6 +154,7 @@ PREAMBLE = r"""\documentclass[11pt,openany]{book}
 \usetikzlibrary{positioning,arrows.meta,shapes,shapes.geometric,shadows,calc,fit}
 
 \tikzset{
+    every node/.style={align=center},
     modernbox/.style={
         rectangle,
         draw=primaryblue,
@@ -321,6 +322,13 @@ def sanitize_chapter_tex(tex: str) -> str:
     body = re.sub(r"\\usepackage(?:\[[^\]]*\])?\{[^}]*\}\n?", "", body)
     body = re.sub(r"\\usetikzlibrary\{[^}]*\}\n?", "", body)
     body = re.sub(r"\\begin\{document\}|\\end\{document\}", "", body)
+
+    # Ensure tikzpicture has align=center or every node/.style={align=center} so \\ in node labels doesn't crash LR mode
+    body = re.sub(
+        r"\\begin\{tikzpicture\}(?:\[([^\]]*)\])?",
+        lambda m: r"\begin{tikzpicture}[" + (m.group(1) + ", " if m.group(1) else "") + r"every node/.append style={align=center}]" if "align=center" not in (m.group(1) or "") else m.group(0),
+        body,
+    )
 
     # Unwrap redundant \begin{table}...\input{.../tables/table_*.tex}...\end{table}
     # because table fragments already contain \begin{table}...\end{table}
