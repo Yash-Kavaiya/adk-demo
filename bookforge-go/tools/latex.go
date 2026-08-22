@@ -199,7 +199,8 @@ const Preamble = `\documentclass[11pt,openany]{book}
 }
 \usepackage{morefloats}
 \extrafloats{100}
-\usepackage{microtype}
+\usepackage{lmodern}
+\usepackage[protrusion=true,expansion=false]{microtype}
 \usepackage{enumitem}
 \usepackage{hyperref}
 \usepackage{caption}
