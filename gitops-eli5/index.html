@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitOps ELI5 — Interactive Learning Hub</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --panel2: #1c2330;
+    --border: #2d3748;
+    --text: #e6edf3;
+    --muted: #9aa7b5;
+    --accent: #58a6ff;
+    --good: #3fb950;
+    --warn: #f0883e;
+    --bad: #f85149;
+    --code-bg: #0a0e14;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* Header */
+  header.site {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(13,17,23,0.94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  header.site .brand {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.02em;
+  }
+  header.site .brand .dot { color: var(--good); }
+  nav.top { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+  nav.top a {
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding: 0.28rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+  }
+  nav.top a:hover {
+    color: var(--text);
+    border-color: var(--border);
+    background: var(--panel);
+    text-decoration: none;
+  }
+  nav.top a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .progress-wrap {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+  }
+  .progress-bar {
+    width: 130px;
+    height: 7px;
+    background: var(--panel2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-bar > div {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--good));
+    transition: width 0.35s ease;
+  }
+
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
+  }
+
+  section.card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.35rem 1.5rem;
+    margin-bottom: 1.75rem;
+    scroll-margin-top: 76px;
+  }
+  h1 { font-size: 1.7rem; margin: 0.2rem 0 0.3rem; line-height: 1.25; }
+  h2 {
+    font-size: 1.18rem;
+    margin: 0 0 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+  h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 8px;
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--accent);
+  }
+  p.lede { color: var(--muted); font-size: 0.95rem; margin: 0 0 1rem; }
+
+  .pill {
+    display: inline-block;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: rgba(88,166,255,0.12);
+    border: 1px solid rgba(88,166,255,0.35);
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+  }
+
+  /* Push vs Pull visual */
+  .vs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .model-box {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel2);
+    overflow: hidden;
+  }
+  .model-box h3 {
+    margin: 0;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.92rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .tag-push { color: var(--bad); }
+  .tag-pull { color: var(--good); }
+  .flow {
+    list-style: none;
+    margin: 0;
+    padding: 0.8rem 0.9rem 0.9rem;
+    position: relative;
+  }
+  .flow li {
+    position: relative;
+    padding: 0.32rem 0 0.32rem 1.45rem;
+    font-size: 0.86rem;
+  }
+  .flow li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.52rem;
+    width: 0.62rem;
+    height: 0.62rem;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .flow li:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 0.27rem;
+    top: 1.15rem;
+    bottom: -0.28rem;
+    width: 2px;
+    background: var(--border);
+  }
+  .flow li.hot::before { background: var(--bad); box-shadow: 0 0 8px rgba(248,81,73,0.7); }
+  .flow li.cool::before { background: var(--good); box-shadow: 0 0 8px rgba(63,185,80,0.7); }
+
+  /* Comparison table */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  table.cmp {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 560px;
+    font-size: 0.86rem;
+  }
+  table.cmp th, table.cmp td {
+    text-align: left;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.cmp thead th {
+    background: var(--panel2);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  table.cmp tbody tr:last-child td { border-bottom: none; }
+  td.good-val { color: var(--good); }
+  td.bad-val { color: var(--bad); }
+
+  /* Tabs */
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0; }
+  .tabs button {
+    type: button;
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--muted);
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 10px 10px 0 0;
+    padding: 0.5rem 0.95rem;
+    cursor: pointer;
+    border-bottom-color: transparent;
+  }
+  .tabs button[aria-selected="true"] {
+    color: var(--text);
+    background: var(--panel);
+    border-bottom: 2px solid var(--accent);
+  }
+  .tab-panel {
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 12px;
+    background: var(--panel);
+    padding: 1.1rem 1.2rem;
+  }
+  .tab-panel[hidden] { display: none; }
+  .tab-panel h3 { margin: 0 0 0.6rem; font-size: 1rem; }
+  .tab-panel table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .tab-panel td, .tab-panel th {
+    text-align: left;
+    padding: 0.45rem 0.6rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-panel th { color: var(--muted); font-weight: 600; }
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.08rem 0.4rem;
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+    font-size: 0.84em;
+  }
+  pre.codeblock {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    overflow-x: auto;
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+  pre.codeblock code { background: transparent; border: none; padding: 0; }
+  .note {
+    border-left: 3px solid var(--accent);
+    background: rgba(88,166,255,0.07);
+    padding: 0.65rem 0.9rem;
+    border-radius: 0 10px 10px 0;
+    font-size: 0.87rem;
+    margin: 0.9rem 0 0;
+  }
+  .note.warn { border-left-color: var(--warn); background: rgba(240,136,62,0.08); }
+
+  /* Quiz */
+  .quiz-q {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--panel2);
+    padding: 0.95rem 1.05rem;
+    margin-bottom: 0.9rem;
+  }
+  .quiz-q p.q { margin: 0 0 0.7rem; font-size: 0.92rem; font-weight: 600; }
+  .quiz-q label {
+    display: block;
+    font-size: 0.87rem;
+    padding: 0.42rem 0.65rem;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    margin-bottom: 0.4rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .quiz-q label:hover { border-color: var(--accent); }
+  .quiz-q input[type="radio"] { margin-right: 0.5rem; accent-color: var(--accent); }
+  .feedback {
+    display: none;
+    font-size: 0.83rem;
+    margin-top: 0.55rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 9px;
+  }
+  .feedback.ok { display: block; background: rgba(63,185,80,0.12); border: 1px solid rgba(63,185,80,0.4); }
+  .feedback.no { display: block; background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.4); }
+  .quiz-score {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    font-size: 0.88rem;
+    color: var(--muted);
+    margin-top: 0.4rem;
+  }
+  button.action {
+    font: inherit;
+    font-size: 0.85rem;
+    color: var(--text);
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 0.45rem 0.95rem;
+    cursor: pointer;
+  }
+  button.action:hover { border-color: var(--accent); }
+
+  /* Drift demo */
+  .drift-stage { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1rem; }
+  .state-card {
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    background: var(--panel2);
+  }
+  .state-card h4 { margin: 0 0 0.5rem; font-size: 0.85rem; color: var(--muted); }
+  .state-line {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 0.84rem;
+    padding: 0.35rem 0.55rem;
+    border-radius: 7px;
+    margin-bottom: 0.3rem;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+  }
+  .state-line.drifted { border-color: var(--warn); color: var(--warn); }
+  .status-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 0.16rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .status-badge.synced { color: var(--good); border-color: rgba(63,185,80,0.5); }
+  .status-badge.outofsync { color: var(--warn); border-color: rgba(240,136,62,0.5); }
+
+  .tight { margin-bottom: 0; }
+  .sub { font-size: 1rem; margin: 1.2rem 0 0.6rem; }
+  .gap-top { margin-top: 0.9rem; }
+  .hidden-note { display: none; }
+  .bare { border: none; padding: 0; margin: 0; }
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap; border: 0;
+  }
+  footer.site {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 1.2rem 1.25rem 3rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+  }
+  footer.site ul { margin: 0.4rem 0 0; padding-left: 1.1rem; }
+
+  @media (max-width: 640px) {
+    main { padding: 1rem 0.85rem 3rem; }
+    section.card { padding: 1.05rem 0.95rem; }
+    h1 { font-size: 1.4rem; }
+    .progress-wrap { display: none; }
+  }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    header.site, nav.top, .quiz-actions, .progress-wrap { display: none; }
+    section.card { border-color: #ccc; break-inside: avoid; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="brand">GitOps<span class="dot">●</span>ELI5</div>
+  <nav class="top" aria-label="Section navigation">
+    <a href="#idea">Big Idea</a>
+    <a href="#pushpull">Push vs Pull</a>
+    <a href="#tools">Argo vs Flux</a>
+    <a href="#drift">Drift Demo</a>
+    <a href="#quiz">Quiz</a>
+    <a href="#recap">Recap</a>
+  </nav>
+  <div class="progress-wrap">
+    <span id="progress-label">Read 0 / 6</span>
+    <div class="progress-bar"><div id="progress-fill"></div></div>
+  </div>
+</header>
+
+<main>
+  <section class="card" id="idea" aria-labelledby="h-idea">
+    <span class="pill">Section 1 · The Big Idea</span>
+    <h1>GitOps = Git is the boss</h1>
+    <p class="lede">Whatever is written in Git is exactly what your servers should look like. If real life doesn't match Git, something fixes it — automatically.</p>
+    <p>GitOps means using Git as the <strong>single source of truth</strong> for both applications and infrastructure. Instead of "I deployed this by hand," you say: <em>"whatever is currently declared in Git is what the cluster should be."</em></p>
+    <div class="note warn">Kubernetes is the most popular home for GitOps (it is declarative by design), but any platform following the Open GitOps principles can do it.</div>
+    <p class="tight">Things that live in Git under GitOps:</p>
+    <ul>
+      <li>Kubernetes manifests (Deployments, Services, ConfigMaps, Ingress)</li>
+      <li>Helm values and environment-specific configuration</li>
+      <li>Non-sensitive environment variables + sealed-secret references</li>
+      <li>Container image tags/digests (application versions)</li>
+      <li>Declarative infrastructure definitions</li>
+    </ul>
+    <p class="tight"><strong>Why it got popular:</strong> every change is tracked with a commit, accountability is built in ("who changed what, when"), environments are exactly reproducible from one repo, rollback is just <code>git revert</code>, and fast-changing AI systems (models, prompts, inference configs) finally get structure and an audit trail.</p>
+  </section>
+
+  <section class="card" id="pushpull" aria-labelledby="h-pushpull">
+    <span class="pill">Section 2 · The Core Flip</span>
+    <h2><span class="num" id="h-pushpull">2</span>Push vs Pull — why the old way leaks</h2>
+    <p class="lede">Old CI/CD pushes into servers (and carries prod keys). GitOps makes the server pull its own desired state from Git.</p>
+
+    <div class="vs-grid">
+      <div class="model-box">
+        <h3>Traditional CI/CD <span class="tag-push">PUSH ▲ risky</span></h3>
+        <ol class="flow">
+          <li>Developer pushes code</li>
+          <li>CI pipeline: install → test → build → scan image</li>
+          <li>Image goes to registry</li>
+          <li class="hot">Pipeline holds cluster credentials &amp; connects to production</li>
+          <li class="hot">Deploys via kubectl / helm directly</li>
+        </ol>
+      </div>
+      <div class="model-box">
+        <h3>GitOps <span class="tag-pull">PULL ▼ safe</span></h3>
+        <ol class="flow">
+          <li>Developer pushes code</li>
+          <li>CI pipeline: build, test, scan — then <em>stops</em></li>
+          <li>CI updates a config repo (desired state)</li>
+          <li class="cool">GitOps controller inside cluster watches Git</li>
+          <li class="cool">Cluster pulls changes &amp; reconciles itself</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="note">In the pull model the cluster never exposes deployment credentials to any external system. If someone changes the cluster directly, drift is detected — and auto-healed or alerted depending on configuration.</div>
+
+    <h3 class="sub">Side-by-side comparison</h3>
+    <div class="table-scroll">
+      <table class="cmp">
+        <caption class="visually-hidden">Comparison of traditional push-based CI/CD versus GitOps pull-based deployment</caption>
+        <thead>
+          <tr>
+            <th scope="col">Aspect</th>
+            <th scope="col">Traditional (Push)</th>
+            <th scope="col">GitOps (Pull)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Who deploys?</td><td>CI actively connects &amp; pushes</td><td class="good-val">Cluster pulls from Git</td></tr>
+          <tr><td>Credentials</td><td class="bad-val">CI system holds prod keys</td><td class="good-val">Cluster only reads Git</td></tr>
+          <tr><td>Security posture</td><td class="bad-val">Compromised pipeline = path to prod</td><td class="good-val">No external write access</td></tr>
+          <tr><td>Drift detection</td><td class="bad-val">Manual kubectl edits go unnoticed</td><td class="good-val">Built-in + self-healing</td></tr>
+          <tr><td>Source of truth</td><td>Ambiguous (pipeline + manual edits)</td><td class="good-val">Git, single source of truth</td></tr>
+          <tr><td>Rollback</td><td>Re-run pipeline or manual fix</td><td class="good-val">git revert + auto reconcile</td></tr>
+          <tr><td>Audit trail</td><td>Incomplete if manual changes occur</td><td class="good-val">Every change has a commit</td></tr>
+          <tr><td>CI/CD coupling</td><td>Tightly coupled</td><td class="good-val">Fully decoupled</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">Benefits checklist</h3>
+    <ul>
+      <li><strong>Complete change history</strong> — full commit metadata for everything</li>
+      <li><strong>Simple rollback</strong> — revert commit, controller restores state</li>
+      <li><strong>Single source of truth</strong> — all environments read the same Git</li>
+      <li><strong>Drift detection &amp; self-healing</strong> — deviations corrected automatically</li>
+      <li><strong>Disaster recovery</strong> — rebuild a lost cluster purely from Git</li>
+      <li><strong>Auditability for AI systems</strong> — model versions, prompts, inference configs become versioned and reviewable</li>
+    </ul>
+  </section>
+
+  <section class="card" id="tools" aria-labelledby="h-tools">
+    <span class="pill">Section 3 · The Two Robots</span>
+    <h2><span class="num" id="h-tools">3</span>Argo CD vs Flux CD</h2>
+    <p class="lede">Both are CNCF-graduated and do the same core job: watch Git → reconcile the cluster. Pick based on team culture.</p>
+
+    <div class="tabs" role="tablist" aria-label="GitOps operator details">
+      <button type="button" role="tab" id="tab-argo" aria-controls="panel-shared" aria-selected="true">Argo CD</button>
+      <button type="button" role="tab" id="tab-flux" aria-controls="panel-shared" aria-selected="false">Flux CD</button>
+      <button type="button" role="tab" id="tab-cmp" aria-controls="panel-shared" aria-selected="false">Head-to-head</button>
+    </div>
+
+    <div class="tab-panel" id="panel-shared" role="tabpanel" aria-labelledby="tab-argo">
+      <!-- filled by script -->
+    </div>
+  </section>
+
+  <section class="card" id="drift" aria-labelledby="h-drift">
+    <span class="pill">Section 4 · Live Simulation</span>
+    <h2><span class="num" id="h-drift">4</span>Watch self-healing happen</h2>
+    <p class="lede">This simulates Scenario 2: someone runs <code>kubectl edit</code> on the cluster. Press the buttons and see what the controller does.</p>
+
+    <div class="drift-stage">
+      <div class="state-card">
+        <h4>Desired state (Git)</h4>
+        <div class="state-line">image: myapp:v1</div>
+        <span class="status-badge synced" id="badge-git">source of truth</span>
+      </div>
+      <div class="state-card">
+        <h4>Actual state (Cluster)</h4>
+        <div class="state-line" id="cluster-state">image: myapp:v1</div>
+        <span class="status-badge synced" id="badge-cluster">Synced ✓</span>
+      </div>
+    </div>
+
+    <div class="quiz-score gap-top">
+      <button type="button" class="action" id="btn-drift">Run kubectl edit (v1 → v2)</button>
+      <button type="button" class="action" id="btn-heal">Trigger reconciliation</button>
+    </div>
+    <div class="note hidden-note" id="drift-msg"></div>
+  </section>
+
+  <section class="card" id="quiz" aria-labelledby="h-quiz">
+    <span class="pill">Section 5 · Check Yourself</span>
+    <h2><span class="num" id="h-quiz">5</span>The four scenario questions</h2>
+    <p class="lede">These test whether you truly get the pull model — straight from the source material.</p>
+
+    <form id="quiz-form">
+      <fieldset class="bare">
+        <legend class="visually-hidden">GitOps scenario quiz</legend>
+
+        <div class="quiz-q" data-answer="b">
+          <p class="q">1. A developer changes the Docker image in Git from v1 to v2. What happens next?</p>
+          <label><input type="radio" name="q1" value="a">Nothing until someone runs kubectl apply manually</label>
+          <label><input type="radio" name="q1" value="b">The controller detects the change and syncs the cluster to v2 (if auto-sync is on)</label>
+          <label><input type="radio" name="q1" value="c">The CI pipeline SSHes into nodes to update the image</label>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="quiz-q" data-answer="b">
+          <p class="q">2. Someone manually edited a Deployment with kubectl edit. Result?</p>
+          <label><input type="radio" name="q2" value="a">The change sticks permanently — nobody notices</label>
+          <label><input type="radio" name="q2" value="b">Drift detected; self-healing restores the Git-defined state</label>
+          <label><input type="radio" name="q2" value="c">The cluster crashes until restarted</label>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="quiz-q" data-answer="a">
+          <p class="q">3. Production breaks after a bad release. The GitOps way to fix it?</p>
+          <label><input type="radio" name="q3" value="a">Revert the bad commit — controller rolls back automatically</label>
+          <label><input type="radio" name="q3" value="b">Manually redeploy the old version at 3am via kubectl</label>
+          <label><input type="radio" name="q3" value="c">Re-run the entire CI pipeline from scratch</label>
+          <div class="feedback"></div>
+        </div>
+
+        <div class="quiz-q" data-answer="c">
+          <p class="q">4. GitHub Actions just built a new image. Should CI deploy it to the cluster?</p>
+          <label><input type="radio" name="q4" value="a">Yes — that's what CI/CD means</label>
+          <label><input type="radio" name="q4" value="b">Yes, but only during business hours</label>
+          <label><input type="radio" name="q4" value="c">No — CI updates only the config repo; the controller deploys</label>
+          <div class="feedback"></div>
+        </div>
+      </fieldset>
+
+      <div class="quiz-score">
+        <span id="score-text">Score: 0 / 4</span>
+        <button type="submit" class="action" id="btn-grade">Check answers</button>
+        <button type="button" class="action" id="btn-reset">Reset quiz</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card" id="recap" aria-labelledby="h-recap">
+    <span class="pill">Section 6 · Final Recap</span>
+    <h2><span class="num" id="h-recap">6</span>One-line summary</h2>
+    <p class="lede">The whole crash course compressed.</p>
+    <pre class="codeblock"><code>OLD WAY : pipeline ──push──▶ servers   (servers exposed, keys travel, drift hides)
+GITOPS  : git ◀──read── controller ──▶ servers
+          Git stores desired state. Cluster pulls it. Drift heals itself.
+          Rollback = git revert.</code></pre>
+    <p><strong>Next steps</strong> (from the video): explore the DevOps AI Playbook repo, practice making a Git change and watching the cluster converge, and review the related traditional CI/CD material.</p>
+  </section>
+</main>
+
+<footer class="site">
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li>Notes: "GitOps Detailed Notes" from a video by Vishaka (Senior Solutions Architect) — Yash-Kavaiya/Vishakha-Sadhwani repository.</li>
+    <li>Tools referenced: Argo CD and Flux CD, both CNCF Graduated projects (<a href="https://argo-cd.readthedocs.io/">argo-cd.readthedocs.io</a>, <a href="https://fluxcd.io/">fluxcd.io</a>).</li>
+  </ul>
+  <p>Interactive learning hub · progress stored locally in your browser (localStorage key: <code>gitops-eli5-progress</code>) · works fully offline.</p>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Tab content ---------- */
+  var TABS = {
+    argo: {
+      title: "Argo CD — visibility and control",
+      html:
+        '<h3>' + 'Argo CD' + '</h3>' +
+        '<p style="font-size:0.9rem;">Application-centric operator installed via Helm. Runs several pods: API Server, Application Controller, Repo Server. Ships an excellent web UI showing Synced / OutOfSync / Healthy / Degraded status.</p>' +
+        '<table><tbody>' +
+        '<tr><th scope="row">Key object</th><td><code>Application</code> Custom Resource — declares which Git repo to watch, which path, which namespace</td></tr>' +
+        '<tr><th scope="row">Loop</th><td>Compare Git desired state vs live cluster continuously</td></tr>' +
+        '<tr><th scope="row">On difference</td><td>Mark app <strong>OutOfSync</strong>; auto-sync applies changes or waits for manual approval</td></tr>' +
+        '<tr><th scope="row">Best for</th><td>Teams that want pictures, gates, and control over every sync</td></tr>' +
+        '</tbody></table>' +
+        '<div class="note">Reconciliation loop: developer pushes → Argo detects → pulls manifests → compares → OutOfSync? → auto-sync yes/no → cluster matches Git → keep watching.</div>'
+    },
+    flux: {
+      title: "Flux CD — automation and self-healing",
+      html:
+        '<h3>' + 'Flux CD' + '</h3>' +
+        '<p style="font-size:0.9rem;">Modular collection of independent controllers. No default web UI — everything is managed through Custom Resources and controllers, giving a more Kubernetes-native feel.</p>' +
+        '<table><tbody>' +
+        '<tr><th scope="row">Source Controller</th><td>Watches Git repos, Helm repos, OCI registries</td></tr>' +
+        '<tr><th scope="row">Kustomize Controller</th><td>Applies raw YAML / Kustomize artifacts</td></tr>' +
+        '<tr><th scope="row">Helm Controller</th><td>Manages Helm releases</td></tr>' +
+        '<tr><th scope="row">Typical objects</th><td><code>GitRepository</code> CRD (the source) + <code>Kustomization</code> or <code>HelmRelease</code> CRD (what to deploy where)</td></tr>' +
+        '</tbody></table>' +
+        '<div class="note">Flux emphasises automation and self-healing: drift detected → correct state applied automatically → continuous reconciliation. Excellent for scale and multi-tenancy.</div>'
+    },
+    cmp: {
+      title: "Head-to-head comparison",
+      html:
+        '<h3>Head-to-head</h3>' +
+        '<table><thead><tr><th scope="col">Dimension</th><th scope="col">Argo CD</th><th scope="col">Flux CD</th></tr></thead><tbody>' +
+        '<tr><th scope="row">Strength</th><td>Visibility, control, rich UI</td><td>Automation, modularity, self-healing</td></tr>' +
+        '<tr><th scope="row">UI</th><td>Excellent web UI out of the box</td><td>No default UI (CLI / API / dashboards)</td></tr>' +
+        '<tr><th scope="row">Architecture</th><td>More monolithic application model</td><td>Collection of independent controllers</td></tr>' +
+        '<tr><th scope="row">Learning curve</th><td>Easier if you want a GUI</td><td>Steeper, Kubernetes-native feel</td></tr>' +
+        '<tr><th scope="row">Multi-tenancy</th><td>Good with Projects</td><td>Excellent native support</td></tr>' +
+        '<tr><th scope="row">CNCF</th><td>Graduated</td><td>Graduated</td></tr>' +
+        '<tr><th scope="row">Typical choice</th><td>Observability &amp; control teams</td><td>Pure automation &amp; GitOps purity</td></tr>' +
+        '</tbody></table>'
+    }
+  };
+
+  var tabButtons = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+  var tabPanel = document.getElementById('panel-shared');
+
+  function selectTab(name) {
+    tabButtons.forEach(function (btn) {
+      var active = btn.id === 'tab-' + name;
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    var data = TABS[name];
+    tabPanel.innerHTML =
+      '<h3 style="margin-top:0;">' + data.title + '</h3>' + data.html;
+    tabPanel.setAttribute('aria-labelledby', 'tab-' + name);
+  }
+
+  tabButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      selectTab(btn.id.replace('tab-', ''));
+    });
+  });
+  selectTab('argo');
+
+  /* ---------- Quiz ---------- */
+  var quizForm = document.getElementById('quiz-form');
+  var questions = Array.prototype.slice.call(quizForm.querySelectorAll('.quiz-q'));
+  var scoreText = document.getElementById('score-text');
+  var STORE_KEY = 'gitops-eli5-answers';
+
+  function loadSaved() {
+    try {
+      return JSON.parse(window.localStorage.getItem(STORE_KEY) || '{}');
+    } catch (e) { return {}; }
+  }
+
+  function saveState(state) {
+    try { window.localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+  }
+
+  function gradeQuestion(q) {
+    var chosen = q.querySelector('input:checked');
+    var fb = q.querySelector('.feedback');
+    q.classList.remove('graded');
+    if (!chosen) { fb.className = 'feedback'; fb.textContent = ''; return false; }
+    var correct = chosen.value === q.getAttribute('data-answer');
+    fb.className = 'feedback ' + (correct ? 'ok' : 'no');
+    fb.textContent = correct
+      ? '✓ Correct.'
+      : '✗ Not quite. In the pull model the controller inside the cluster owns all deployments.';
+    return correct;
+  }
+
+  function gradeAll() {
+    var score = 0;
+    var state = {};
+    questions.forEach(function (q, i) {
+      var chosen = q.querySelector('input:checked');
+      if (chosen) { state['q' + (i + 1)] = chosen.value; }
+      if (gradeQuestion(q)) { score++; }
+    });
+    saveState(state);
+    scoreText.textContent = 'Score: ' + score + ' / ' + questions.length;
+  }
+
+  quizForm.addEventListener('change', function () { gradeAll(); });
+  quizForm.addEventListener('submit', function (e) { e.preventDefault(); gradeAll(); });
+
+  document.getElementById('btn-reset').addEventListener('click', function () {
+    quizForm.querySelectorAll('input[type="radio"]').forEach(function (r) { r.checked = false; });
+    questions.forEach(function (q) {
+      q.querySelector('.feedback').className = 'feedback';
+      q.querySelector('.feedback').textContent = '';
+    });
+    saveState({});
+    scoreText.textContent = 'Score: 0 / ' + questions.length;
+  });
+
+  // Restore previous answers
+  (function restore() {
+    var saved = loadSaved();
+    Object.keys(saved).forEach(function (key) {
+      var idx = parseInt(key.replace('q', ''), 10) - 1;
+      if (idx >= 0 && idx < questions.length) {
+        var radio = questions[idx].querySelector('input[value="' + saved[key] + '"]');
+        if (radio) { radio.checked = true; }
+      }
+    });
+    gradeAll();
+  })();
+
+  /* ---------- Drift simulation ---------- */
+  var clusterLine = document.getElementById('cluster-state');
+  var clusterBadge = document.getElementById('badge-cluster');
+  var driftMsg = document.getElementById('drift-msg');
+  var drifted = false;
+
+  function setMsg(text) {
+    driftMsg.style.display = 'block';
+    driftMsg.textContent = text;
+  }
+
+  document.getElementById('btn-drift').addEventListener('click', function () {
+    drifted = true;
+    clusterLine.textContent = 'image: myapp:v2';
+    clusterLine.classList.add('drifted');
+    clusterBadge.textContent = 'OutOfSync ⚠ drift';
+    clusterBadge.className = 'status-badge outofsync';
+    setMsg('Someone changed the cluster directly: live state no longer matches Git (v1). The controller sees drift.');
+  });
+
+  document.getElementById('btn-heal').addEventListener('click', function () {
+    if (!drifted) {
+      setMsg('Nothing to heal — cluster already matches Git. Run "kubectl edit" first to create drift.');
+      return;
+    }
+    drifted = false;
+    clusterLine.textContent = 'image: myapp:v1';
+    clusterLine.classList.remove('drifted');
+    clusterBadge.textContent = 'Synced ✓';
+    clusterBadge.className = 'status-badge synced';
+    setMsg('Self-healed: the GitOps controller restored the state declared in Git. Manual changes get overwritten — this is by design.');
+  });
+
+  /* ---------- Reading progress ---------- */
+  var sections = ['idea', 'pushpull', 'tools', 'drift', 'quiz', 'recap'];
+  var readSet = {};
+  var progressLabel = document.getElementById('progress-label');
+  var progressFill = document.getElementById('progress-fill');
+
+  function renderProgress() {
+    var count = Object.keys(readSet).length;
+    progressLabel.textContent = 'Read ' + count + ' / ' + sections.length;
+    progressFill.style.width = Math.round((count / sections.length) * 100) + '%';
+  }
+
+  function markSeen(id) {
+    if (sections.indexOf(id) === -1 || readSet[id]) { return; }
+    readSet[id] = true;
+    renderProgress();
+  }
+
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) { markSeen(entry.target.id); }
+      });
+    }, { threshold: 0.35 });
+    sections.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) { observer.observe(el); }
+    });
+  } else {
+    window.addEventListener('scroll', function () {
+      sections.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top < window.innerHeight * 0.6) { markSeen(id); }
+      });
+    }, { passive: true });
+  }
+})();
+</script>
+</body>
+</html>

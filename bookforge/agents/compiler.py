@@ -46,7 +46,11 @@ class BookCompilerAgent(BaseAgent):
         chapter_rel_dirs = []
         for record in completed:
             chapter_dir = ws.chapter_dir(record)
-            if (chapter_dir / "chapter.tex").exists():
+            ch_tex_path = chapter_dir / "chapter.tex"
+            if ch_tex_path.exists():
+                raw_tex = Workspace.read_text(ch_tex_path)
+                clean_tex = latex_tools.sanitize_chapter_tex(raw_tex)
+                Workspace.write_text(ch_tex_path, clean_tex)
                 chapter_rel_dirs.append(chapter_dir.relative_to(ws.root).as_posix())
             else:
                 logger.warning("chapter.tex missing for %s — skipped", record.video_id)

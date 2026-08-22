@@ -137,18 +137,78 @@ def render_chart(spec: ChartSpec, dest: Path) -> Path:
 PREAMBLE = r"""\documentclass[11pt,openany]{book}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{textcomp}
 \usepackage{booktabs}
+\usepackage{xcolor}
+\definecolor{primaryblue}{RGB}{37, 99, 235}
+\definecolor{accentindigo}{RGB}{79, 70, 229}
+\definecolor{softblue}{RGB}{238, 242, 255}
+\definecolor{softgreen}{RGB}{236, 253, 245}
+\definecolor{accentgreen}{RGB}{16, 185, 129}
+\definecolor{darkslate}{RGB}{30, 41, 59}
+\definecolor{lightgray}{RGB}{241, 245, 249}
+\definecolor{bordergray}{RGB}{203, 213, 225}
+
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,shapes,shapes.geometric}
+\usetikzlibrary{positioning,arrows.meta,shapes,shapes.geometric,shadows,calc,fit}
+
+\tikzset{
+    modernbox/.style={
+        rectangle,
+        draw=primaryblue,
+        fill=softblue,
+        thick,
+        rounded corners=4pt,
+        minimum height=1.0cm,
+        minimum width=2.4cm,
+        inner sep=6pt,
+        align=center,
+        font=\small\bfseries\color{darkslate},
+        drop shadow={opacity=0.15, shadow xshift=1.5pt, shadow yshift=-1.5pt}
+    },
+    accentbox/.style={
+        rectangle,
+        draw=accentgreen,
+        fill=softgreen,
+        thick,
+        rounded corners=4pt,
+        minimum height=1.0cm,
+        minimum width=2.4cm,
+        inner sep=6pt,
+        align=center,
+        font=\small\bfseries\color{darkslate},
+        drop shadow={opacity=0.15, shadow xshift=1.5pt, shadow yshift=-1.5pt}
+    },
+    neutralbox/.style={
+        rectangle,
+        draw=bordergray,
+        fill=lightgray,
+        thick,
+        rounded corners=4pt,
+        minimum height=1.0cm,
+        minimum width=2.4cm,
+        inner sep=6pt,
+        align=center,
+        font=\small\color{darkslate},
+        drop shadow={opacity=0.10, shadow xshift=1pt, shadow yshift=-1pt}
+    },
+    flowarrow/.style={
+        ->,
+        >={Stealth[length=6pt, width=5pt]},
+        thick,
+        color=primaryblue,
+        font=\footnotesize\color{darkslate}
+    }
+}
 \usepackage{morefloats}
 \extrafloats{100}
 \usepackage{enumitem}
-\usepackage{xcolor}
 \usepackage{hyperref}
 \usepackage{caption}
 \setlength{\parskip}{4pt}
 \setlength{\parindent}{0pt}
-\hypersetup{colorlinks=true, linkcolor=blue!50!black, urlcolor=blue!50!black}
+\hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=accentindigo}
 """
 
 
@@ -269,4 +329,28 @@ def sanitize_chapter_tex(tex: str) -> str:
         r"\2",
         body,
     )
+
+    # Auto-wrap common standalone math commands that LLMs output in text mode without $...$
+    math_symbols = [
+        r"\\approx",
+        r"\\sim",
+        r"\\le\b",
+        r"\\ge\b",
+        r"\\leq\b",
+        r"\\geq\b",
+        r"\\neq\b",
+        r"\\times\b",
+        r"\\pm\b",
+        r"\\mp\b",
+        r"\\cdot\b",
+        r"\\in\b",
+        r"\\notin\b",
+        r"\\subset\b",
+        r"\\subseteq\b",
+        r"\\infty\b",
+    ]
+    for sym in math_symbols:
+        # If preceded and followed by non-$, wrap it in $ $
+        body = re.sub(rf"(?<!\$)\b({sym})(?!\$)", r"$\1$", body)
+
     return body.strip() + "\n"

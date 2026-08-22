@@ -130,3 +130,8 @@ class Workspace:
             tmp_path = Path(tmp.name)
         tmp_path.replace(path)
         return path
+
+    @staticmethod
+    def read_text(path: Path) -> str:
+        return Path(path).read_text(encoding="utf-8", errors="replace")
+

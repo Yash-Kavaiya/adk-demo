@@ -67,10 +67,11 @@ Compose the chapter in this exact section order:
   manifest via the input command (do NOT wrap it in another table environment
   because the fragment already contains begin/end table), and include every chart
   figure. Reference each float in the running text (see Table~ref, Figure~ref).
-- "Conceptual Models" — render EVERY diagram spec from the analysis as TikZ:
-  flowcharts with rectangular nodes and labeled arrows, sequences as vertical
-  step chains, hierarchies as trees, mindmaps as radial nodes. Keep node text
-  under 6 words. Wrap each in a figure environment with caption and label.
+- "Conceptual Models" — render EVERY diagram spec from the analysis as a beautiful TikZ diagram:
+  * Use the predefined styles: `modernbox` (primary actions/components), `accentbox` (target/output states), `neutralbox` (data/cache/secondary), and `flowarrow` (transitions).
+  * Structure flowcharts with clear horizontal or vertical node distances (`node distance=1.2cm and 2.0cm`).
+  * Add clear label descriptors along arrows (e.g. `node[above, font=\footnotesize] text`).
+  * Keep node text concise and legible (max 4-6 words per box). Wrap each diagram in a `figure` environment with `\centering`, descriptive `\caption`, and `\label`.
 - "Key Takeaways" — itemize of the most important points across concepts.
 - "Glossary" — description list of every glossary entry.
 - "Exercises" — enumerate of questions; answers in a final unnumbered
@@ -83,9 +84,7 @@ Typesetting rules (the QA gate compiles your output with pdflatex):
   uses standard environments: itemize, enumerate, description, figure, center.
 - Every includegraphics filename and input path MUST appear verbatim in the
   assets manifest. Inventing a filename is a critical failure.
-- TikZ must be conservative: positioning and arrows libraries are loaded;
-  avoid exotic libraries, absolute coordinates beyond 12cm, and special chars
-  inside node text.
+- TikZ: Use modernbox/accentbox/neutralbox styles and flowarrow; avoid exotic unimported packages and special chars inside node text.
 - Target depth: roughly 1200-2500 words of prose per chapter.
 
 Output ONLY the LaTeX chapter body. No markdown fences, no commentary.

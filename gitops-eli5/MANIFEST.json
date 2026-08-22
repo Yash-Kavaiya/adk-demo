@@ -1,0 +1,25 @@
+{
+  "name": "GitOps ELI5 Interactive Learning Hub",
+  "version": "1.0.0",
+  "created": "2026-08-22",
+  "entry_point": "index.html",
+  "source_notes": "GitOps Detailed Notes (video by Vishaka), repo Yash-Kavaiya/Vishakha-Sadhwani",
+  "files": [
+    {
+      "path": "index.html",
+      "sha256": "12e54aa537a131b81d73e03876c9064ba388c7679d8784ff1d01053171b8ba12"
+    },
+    {
+      "path": "README.md",
+      "sha256": "12e54aa537a131b81d73e03876c9064ba388c7679d8784ff1d01053171b8ba12"
+    },
+    {
+      "path": "VERIFICATION.md",
+      "sha256": "12e54aa537a131b81d73e03876c9064ba388c7679d8784ff1d01053171b8ba12"
+    }
+  ],
+  "checksum_file": {
+    "path": "SHA256SUMS.txt",
+    "note": "covers index.html, README.md, VERIFICATION.md; excludes itself"
+  }
+}

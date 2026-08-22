@@ -1,145 +1,124 @@
-# BookForge — YouTube Channel → Book (Google ADK multi-agent system)
+# 📚 BookForge: YouTube-to-Textbook Multi-Agent System
 
-Give BookForge a **YouTube channel URL**; it produces a **compiled, print-ready
-PDF book** (`book/book.pdf`) plus the full LaTeX source tree — one chapter per
-video with study notes, tables, charts, TikZ diagrams, curated screenshots,
-glossary and exercises.
+> **Transform educational YouTube channels into publication-grade textbooks using Google Agent Development Kit (ADK), NVIDIA NIM / OpenAI Models, and MLflow Tracing & Observability.**
 
-Built on the [Google Agent Development Kit (ADK)](https://adk.dev/).
-See [`PLAN.md`](PLAN.md) for the enhanced flow and
-[`solution-architecture.md`](solution-architecture.md) for the system design.
+[![Google ADK](https://img.shields.io/badge/Google-ADK_2.0-blue.svg)](https://adk.dev)
+[![MLflow Observability](https://img.shields.io/badge/MLflow-Tracing_&_Gateway-0194E2.svg)](https://mlflow.org)
+[![LaTeX Support](https://img.shields.io/badge/LaTeX-pdflatex-green.svg)](https://miktex.org)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-brightgreen.svg)](https://python.org)
 
-## The agent graph
+---
+
+## 🌟 Key Features
+
+- **Multi-Agent Orchestration**: Built strictly on **Google Agent Development Kit (ADK)**:
+  - `ChannelIntakeAgent`: Resolves YouTube channels/playlists into resumable JSON manifests.
+  - `MediaAcquisitionAgent`: Downloads audio/video, transcribes via **Faster-Whisper** with timestamps, extracts and deduplicates video slides using **perceptual hashing (pHash)**.
+  - `TranscriptAnalystAgent`: Analyzes lectures and extracts structured concepts, tables, charts, and TikZ diagram specs via **NVIDIA NIM (`nvidia/nemotron-3-ultra-550b-a55b`)** or Gemini.
+  - `VisualAssetAgent`: Generates vector PDFs for matplotlib charts, TikZ architecture diagrams, and table fragments.
+  - `ChapterWriterAgent` & `ChapterCriticAgent`: Authors and verifies LaTeX chapters in an iterative refinement QA loop.
+  - `BookCompilerAgent`: Typesets standalone chapters and compiles the master `book.pdf`.
+- **Full MLflow Integration (Python & Go)**:
+  - **OpenTelemetry Tracing**: Streams OTLP spans directly to MLflow.
+  - **AI Gateway Connector**: Routes LLM requests through MLflow's model proxy.
+  - **LLM Scorers & Evaluators**: Automated evaluation of generated chapters.
+- **Interactive Web UI & CLI**: Run seamlessly from the command line or via the interactive Google ADK Web UI.
+
+---
+
+## 🏗️ Multi-Agent Architecture
 
 ```
-bookforge (SequentialAgent)
-├── ChannelIntakeAgent        channel URL -> manifest/videos.json (resumable)
-├── BookProductionAgent       loop over pending videos, checkpointed
-│   └── chapter_pipeline (SequentialAgent, once per video)
-│       ├── MediaAcquisitionAgent   download · captions→whisper · frames + pHash dedupe
-│       ├── TranscriptAnalystAgent  Gemini Flash -> ChapterAnalysis JSON (structured)
-│       ├── VisualAssetAgent        matplotlib charts · booktabs tables · figures
-│       ├── ChapterWriterAgent      Gemini Pro -> chapter.tex
-│       └── chapter_qa_loop (LoopAgent, max 3)
-│           ├── ChapterCriticAgent  real pdflatex compile + asset checks -> approve/critique
-│           └── ChapterRefinerAgent rewrite from the critique
-└── BookCompilerAgent         main.tex + pdflatex -> book.pdf
+User Input (YouTube URL)
+   │
+   ▼
+[ChannelIntakeAgent] ──► Generates video manifest (videos.json)
+   │
+   ▼
+[SequentialAgent: Chapter Production Pipeline] (Per Video)
+   ├── [MediaAcquisitionAgent] (Video + Whisper Audio + pHash Keyframes)
+   ├── [TranscriptAnalystAgent] (Structured JSON Analysis via NVIDIA NIM / Gemini)
+   ├── [VisualAssetAgent] (Matplotlib Charts + Booktabs Tables + Keyframe Assets)
+   └── [LoopAgent: ChapterRefinementLoop]
+         ├── [ChapterWriterAgent] (Academic LaTeX Composition)
+         └── [ChapterCriticAgent] (pdflatex Validation + QA Quality Gate)
+   │
+   ▼
+[BookCompilerAgent] ──► Compiles master book.pdf with Table of Contents & Preamble
 ```
 
-Deterministic stages (download, frames, charts, compiling) are **code** — LLM
-tokens are spent only on analysis, writing and critique.
+---
 
-## Quickstart
+## 🚀 Getting Started
+
+### 1. Prerequisites
+- Python 3.11+
+- `ffmpeg` installed and on your PATH
+- `pdflatex` (MiKTeX or TeXLive) for compiling PDFs
+
+### 2. Installation
+```bash
+git clone https://github.com/<your-username>/adk-demo.git
+cd adk-demo
+pip install -e .
+```
+
+### 3. Environment Configuration
+Create a `.env` file in the root directory:
+```env
+# Optional: NVIDIA NIM API (or standard OpenAI / Gemini keys)
+BOOKFORGE_OPENAI_API_BASE=https://integrate.api.nvidia.com/v1
+BOOKFORGE_OPENAI_API_KEY=your_nvidia_or_openai_api_key
+BOOKFORGE_MODEL_ANALYST=nvidia/nemotron-3-ultra-550b-a55b
+BOOKFORGE_MODEL_WRITER=nvidia/nemotron-3-ultra-550b-a55b
+BOOKFORGE_MODEL_CRITIC=nvidia/nemotron-3-ultra-550b-a55b
+```
+
+---
+
+## ⚡ Quick Start: One-Command Runner
+
+Run both the **MLflow Tracking Server** and **Google ADK Web UI** simultaneously:
+
+### On Windows (PowerShell):
+```powershell
+.\start_all.ps1
+```
+
+### On Linux / macOS (Bash):
+```bash
+chmod +x start_all.sh
+./start_all.sh
+```
+
+- 🤖 **Google ADK Web UI**: `http://127.0.0.1:8000`
+- 📊 **MLflow Tracing Dashboard**: `http://127.0.0.1:5000`
+
+---
+
+## 📖 CLI Usage
+
+To run the pipeline directly from the command line:
 
 ```bash
-python -m venv .venv && .venv\Scripts\activate    # or source .venv/bin/activate
-pip install -e ".[dev]"
-cp .env.example .env                               # then set GOOGLE_API_KEY
+# Generate a book from a YouTube channel
+python -m bookforge.main "https://www.youtube.com/@vishakha.sadhwani" --max-videos 2 --verbose
 ```
 
-System prerequisites: **ffmpeg** and a LaTeX toolchain (**pdflatex**, e.g.
-MiKTeX/TeX Live) on PATH — both optional but required for frames and PDF
-output (set `BOOKFORGE_COMPILE_LATEX=false` to skip PDF builds).
+The compiled PDF will be saved to:
+`data/<channel-slug>/book/book.pdf`
 
-Run a channel:
+---
+
+## 🧪 Testing
+
+Run the full pytest test suite (49 automated unit tests):
 
 ```bash
-python -m bookforge.main "https://www.youtube.com/@YourChannel"
-python -m bookforge.main "https://www.youtube.com/@YourChannel" --max-videos 2   # smoke run
+pytest tests/ -v
 ```
 
-Or via the ADK toolchain:
+---
 
-```bash
-adk run bookforge     # paste the channel URL when prompted
-adk web               # interactive UI with event/trace inspection
-```
-
-Output lands in `data/<channel-slug>/`:
-
-```
-manifest.json            # per-video status: pending|media|analyzed|assets|written|verified|failed
-videos/<id>/             # video.mp4, transcript.txt, media.json, frames_raw/
-chapters/<NN>_<title>/   # chapter.tex, figures/, tables/, assets.json
-book/book.pdf            # the final book (+ book_manifest.json)
-```
-
-**Resume:** just run the same command again — verified chapters are skipped,
-failed ones retried.
-
-## Configuration
-
-All settings are env vars with the `BOOKFORGE_` prefix (see
-[`.env.example`](.env.example) for the full list). Highlights:
-
-| Setting | Default | Purpose |
-|---|---|---|
-| `ANALYST_MODEL` / `WRITER_MODEL` / `CRITIC_MODEL` | flash / pro / flash | per-stage model routing |
-| `FRAME_INTERVAL_SEC` | `5` | screenshot cadence |
-| `FRAME_PHASH_THRESHOLD` | `6` | dedupe strictness (hamming) |
-| `MAX_FRAMES_PER_CHAPTER` | `12` | curated figures cap |
-| `MAX_VIDEOS` | *(all)* | scope cap for testing |
-| `QA_MAX_ITERATIONS` | `3` | critic/refiner loop bound |
-| `COMPILE_LATEX` | `true` | set false without pdflatex |
-
-Credentials: `GOOGLE_API_KEY` (AI Studio) **or** Vertex AI
-(`GOOGLE_GENAI_USE_VERTEXAI=TRUE`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`).
-
-## Tests & eval
-
-```bash
-pytest                                                      # unit tests (no network, no API key needed)
-adk eval bookforge eval/bookforge.evalset.json             # smoke evals (2 cases, ~2-5 min)
-adk eval bookforge eval/bookforge-comprehensive.evalset.json  # full suite (30+ cases, ~30-60 min)
-```
-
-See [`eval/README.md`](eval/README.md) for detailed evaluation guide, test categories, and performance benchmarks.
-
-## Deployment
-
-See [`deployment/README.md`](deployment/README.md): Dockerfile (Python + ffmpeg
-+ TeX Live), **Cloud Run Job** recipe (recommended — long-running batch,
-scale-to-zero billing, Secret Manager for the API key) and the Vertex AI Agent
-Engine alternative (`adk deploy agent_engine`).
-
-## Legal / responsible use
-
-Downloading and transcoding YouTube content is subject to YouTube's Terms of
-Service and copyright law. Run BookForge only against content you own or have
-permission to use (your own channel, licensed material). The generated book
-reproduces frames and derived text from the videos.
-
-## Pre-flight checks
-
-BookForge validates the environment before running:
-- ✅ Gemini credentials (`GOOGLE_API_KEY` or Vertex AI)
-- ✅ `ffmpeg` availability (warns if missing)
-- ✅ `pdflatex` availability (auto-disables PDF compilation if missing)
-
-If a required credential is missing, the pipeline fails fast with a clear
-error message.
-
-## Project layout
-
-```
-bookforge/
-├── agent.py            # root_agent for `adk run` / `adk web`
-├── main.py             # CLI runner (python -m bookforge.main <url>)
-├── docker_entry.py     # Docker CHANNEL_URL entrypoint
-├── config.py           # env-driven Settings + structured logging
-├── schemas.py          # pydantic contracts (manifest, analysis, assets)
-├── prompts.py          # brace-free instruction templates
-├── agents/             # intake · media · analyst · assets · writer · critic · compiler · orchestrator
-└── tools/              # workspace · youtube · frames · latex
-tests/                  # offline unit tests (49 tests)
-├── conftest.py         # shared fixtures
-├── test_imports.py     # import chain smoke tests
-├── test_schemas.py     # schema validation tests
-├── test_graph.py       # agent graph wiring tests
-├── test_frames.py      # frame dedupe tests
-├── test_latex.py       # LaTeX rendering tests
-├── test_workspace.py   # workspace management tests
-└── test_youtube.py     # VTT parsing tests
-eval/                   # ADK eval set
-deployment/             # Docker + Cloud Run Job / Agent Engine guides
-```
+## 📄 License
+Apache License 2.0.
