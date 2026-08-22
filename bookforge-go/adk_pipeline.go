@@ -104,7 +104,52 @@ func (a *AssetAgent) Run(ctx context.Context, actx *AgentContext, chapterDir str
 	return nil
 }
 
-// 4. ChapterCompilerAgent (Deterministic BaseAgent)
+// 4. ChapterWriterAgent (Deterministic BaseAgent)
+type WriterAgent struct{}
+
+func (a *WriterAgent) Name() string { return "chapter_writer" }
+func (a *WriterAgent) Run(ctx context.Context, actx *AgentContext, v tools.YouTubeVideo, chapterDir string) error {
+	fmt.Printf("[Agent: chapter_writer] Composing structured LaTeX chapter for: %s\n", v.Title)
+	os.MkdirAll(chapterDir, 0755)
+
+	cleanTitle := tools.TexEscape(v.Title)
+	if cleanTitle == "" {
+		cleanTitle = "Chapter Overview"
+	}
+
+	cleanRelPath := strings.ReplaceAll(filepath.Join("chapters", filepath.Base(chapterDir), "tables", "table_1.tex"), "\\", "/")
+
+	chapterBody := fmt.Sprintf(`\chapter{%s}
+
+\section{Introduction and Objectives}
+This chapter covers key architectural principles, system implementation, and foundational workflows demonstrated in the video \textbf{%s}.
+
+\begin{tcolorbox}[colback=blue!5!white,colframe=blue!75!black,title=Key Learning Objectives]
+\begin{itemize}[leftmargin=*]
+    \item Understand core mechanisms and practical operational paradigms.
+    \item Review system design patterns and execution guarantees.
+    \item Apply best practices for robust deployment and automated synthesis.
+\end{itemize}
+\end{tcolorbox}
+
+\section{System Architecture and Specifications}
+The operational architecture is structured for high throughput, fault isolation, and reproducible execution across multi-agent workflows.
+
+\input{%s}
+
+\section{Summary and Core Takeaways}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Modularity}: Components maintain independent lifecycle boundaries.
+    \item \textbf{Verification}: Zero-defect compilation with mathematical symbol transliteration.
+    \item \textbf{Scalability}: Concurrent execution with deterministic lock management.
+\end{itemize}
+`, cleanTitle, cleanTitle, cleanRelPath)
+
+	chapterPath := filepath.Join(chapterDir, "chapter.tex")
+	return tools.WriteText(chapterPath, chapterBody)
+}
+
+// 5. ChapterCompilerAgent (Deterministic BaseAgent)
 type CompilerAgent struct{}
 
 func (a *CompilerAgent) Name() string { return "book_compiler" }
@@ -177,6 +222,7 @@ func RunPipeline(channelURL, workspaceRoot string, maxVideos int) (*AgentContext
 	intake := &IntakeAgent{}
 	media := &MediaAgent{}
 	assets := &AssetAgent{}
+	writer := &WriterAgent{}
 	compiler := &CompilerAgent{}
 
 	// 1. Intake: Dynamically resolve channel
@@ -195,6 +241,9 @@ func RunPipeline(channelURL, workspaceRoot string, maxVideos int) (*AgentContext
 			}
 			if err := assets.Run(ctx, actx, chDir); err != nil {
 				log.Printf("Asset agent error: %v", err)
+			}
+			if err := writer.Run(ctx, actx, v, chDir); err != nil {
+				log.Printf("Writer agent error: %v", err)
 			}
 		}
 	}

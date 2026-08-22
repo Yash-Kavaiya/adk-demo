@@ -202,6 +202,7 @@ const Preamble = `\documentclass[11pt,openany]{book}
 \usepackage{lmodern}
 \usepackage[protrusion=true,expansion=false]{microtype}
 \usepackage{enumitem}
+\usepackage{tcolorbox}
 \usepackage{hyperref}
 \usepackage{caption}
 \setlength{\parskip}{5pt}
