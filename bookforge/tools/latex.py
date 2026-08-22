@@ -135,6 +135,7 @@ def render_chart(spec: ChartSpec, dest: Path) -> Path:
 # ---------------------------------------------------------------------------
 
 PREAMBLE = r"""\documentclass[11pt,openany]{book}
+\usepackage{etex}
 \usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb}
@@ -322,6 +323,13 @@ def sanitize_chapter_tex(tex: str) -> str:
     body = re.sub(r"\\usepackage(?:\[[^\]]*\])?\{[^}]*\}\n?", "", body)
     body = re.sub(r"\\usetikzlibrary\{[^}]*\}\n?", "", body)
     body = re.sub(r"\\begin\{document\}|\\end\{document\}", "", body)
+
+    # Auto-convert HTML-style tags that LLMs sometimes hallucinate into LaTeX equivalents
+    body = re.sub(r"<\s*/\s*figure\s*>", r"\\end{figure}", body, flags=re.IGNORECASE)
+    body = re.sub(r"<\s*figure\s*>", r"\\begin{figure}[htbp]", body, flags=re.IGNORECASE)
+    body = re.sub(r"<\s*/\s*table\s*>", r"\\end{table}", body, flags=re.IGNORECASE)
+    body = re.sub(r"<\s*table\s*>", r"\\begin{table}[htbp]", body, flags=re.IGNORECASE)
+    body = re.sub(r"<\s*/?\s*(?:div|span|p|section|article)[^>]*>", "", body, flags=re.IGNORECASE)
 
     # Ensure tikzpicture has align=center or every node/.style={align=center} so \\ in node labels doesn't crash LR mode
     body = re.sub(
