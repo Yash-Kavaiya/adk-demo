@@ -70,7 +70,17 @@ def tex_escape(text: str) -> str:
 
 def render_table_fragment(spec: TableSpec, dest: Path) -> Path:
     ncols = max(1, len(spec.headers))
-    col_spec = "l" * ncols
+    # For tables with >3 columns or wide text, use wrapping p{...} columns to prevent overcut
+    if ncols <= 2:
+        col_spec = "ll"
+    elif ncols == 3:
+        col_spec = "p{0.25\\textwidth}p{0.35\\textwidth}p{0.35\\textwidth}"
+    elif ncols == 4:
+        col_spec = "p{0.20\\textwidth}p{0.25\\textwidth}p{0.25\\textwidth}p{0.25\\textwidth}"
+    else:
+        col_width = f"{0.92 / ncols:.2f}\\textwidth"
+        col_spec = "".join(f"p{{{col_width}}}" for _ in range(ncols))
+
     lines = [
         "\\begin{table}[htbp]",
         "  \\centering",
@@ -232,12 +242,15 @@ PREAMBLE = r"""\documentclass[11pt,openany]{book}
 }
 \usepackage{morefloats}
 \extrafloats{100}
+\usepackage{microtype}
 \usepackage{enumitem}
 \usepackage{hyperref}
 \usepackage{caption}
-\setlength{\parskip}{4pt}
+\setlength{\parskip}{5pt}
 \setlength{\parindent}{0pt}
 \hypersetup{colorlinks=true, linkcolor=primaryblue, urlcolor=accentindigo}
+\sloppy
+\emergencystretch=3em
 """
 
 

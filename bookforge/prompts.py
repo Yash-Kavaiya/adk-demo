@@ -67,19 +67,20 @@ Compose the chapter in this exact section order:
   manifest via the input command (do NOT wrap it in another table environment
   because the fragment already contains begin/end table), and include every chart
   figure. Reference each float in the running text (see Table~ref, Figure~ref).
-- "Conceptual Models" — render EVERY diagram spec from the analysis as a beautiful TikZ diagram:
-  * Use the predefined styles: `modernbox` (primary actions/components), `accentbox` (target/output states), `neutralbox` (data/cache/secondary), and `flowarrow` (transitions).
-  * Structure flowcharts with clear horizontal or vertical node distances (`node distance=1.2cm and 2.0cm`).
-  * Add clear label descriptors along arrows (e.g. `node[above, font=\footnotesize] text`).
-  * Keep node text concise and legible (max 4-6 words per box). Wrap each diagram in a `figure` environment with `\centering`, descriptive `\caption`, and `\label`.
+- "Conceptual Models" — render EVERY diagram spec from the analysis as a clean, publication-grade TikZ diagram:
+  * Use the predefined styles: `modernbox` (main steps/components), `accentbox` (target/output states), `neutralbox` (data/cache/secondary), and `flowarrow` (transitions).
+  * Always use structured layout: top-to-bottom (`below=1.2cm of ...`) or left-to-right (`right=1.8cm of ...`). Do NOT chain complex multi-axis diagonal offsets.
+  * Node text: Set explicit text wrapping (e.g. `text width=3.2cm, align=center`) with max 4-7 words per box so text never clips or overcuts.
+  * Add clear label descriptors along arrows (e.g. `node[above, font=\footnotesize] {label}`).
+  * Wrap each diagram in a `figure[htbp]` environment with `\centering`, descriptive `\caption`, and `\label`.
 - "Key Takeaways" — itemize of the most important points across concepts.
 - "Glossary" — description list of every glossary entry.
 - "Exercises" — enumerate of questions; answers in a final unnumbered
   "Solutions" section.
 
-Typesetting rules (the QA gate compiles your output with pdflatex):
-- Escape special characters in prose: percent, ampersand, hash, underscore,
-  dollar. Do not escape commands you intend as markup.
+Typesetting & Overflow rules:
+- Text should NEVER overflow margins (no overfull hbox). Break long technical URLs or code identifiers using `\texttt{...}` with appropriate linebreaks or hyphenation.
+- Escape special characters in prose: percent, ampersand, hash, underscore, dollar, angle brackets.
 - Use booktabs rules only inside the provided table fragments; your own text
   uses standard environments: itemize, enumerate, description, figure, center.
 - Every includegraphics filename and input path MUST appear verbatim in the
