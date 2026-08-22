@@ -16,36 +16,45 @@ logger = logging.getLogger(__name__)
 
 
 def setup_mlflow_tracing(
-    tracking_uri: str = "http://localhost:5000",
-    experiment_name: str = "bookforge-adk",
+    tracking_uri: str | None = None,
+    experiment_name: str | None = None,
 ) -> bool:
     """Configure Google ADK OpenTelemetry spans to stream directly to MLflow.
 
-    Requires:
-        pip install "mlflow>=3.6.0" opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
+    Target experiment: my-experiment (or MLFLOW_EXPERIMENT_NAME env variable).
     """
     try:
         import mlflow
+
+        uri = tracking_uri or os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000")
+        exp = experiment_name or os.getenv("MLFLOW_EXPERIMENT_NAME", "my-experiment")
+
+        mlflow.set_tracking_uri(uri)
+        mlflow.set_experiment(exp)
+
+        # Enable framework-level autologging
+        try:
+            if hasattr(mlflow, "gemini") and hasattr(mlflow.gemini, "autolog"):
+                mlflow.gemini.autolog()
+            elif hasattr(mlflow, "autolog"):
+                mlflow.autolog(log_traces=True)
+        except Exception as e:
+            logger.debug("Auto-logging notice: %s", e)
+
         from opentelemetry import trace
         from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
         from opentelemetry.sdk.resources import Resource
         from opentelemetry.sdk.trace import TracerProvider
         from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-        # Configure MLflow tracking
-        mlflow.set_tracking_uri(tracking_uri)
-        mlflow.set_experiment(experiment_name)
-
-        # Build OTLP endpoint for MLflow Tracing (e.g. http://localhost:5000/v1/traces)
-        otlp_endpoint = f"{tracking_uri.rstrip('/')}/v1/traces"
-
+        otlp_endpoint = f"{uri.rstrip('/')}/v1/traces"
         resource = Resource.create({"service.name": "bookforge-adk-agent"})
         provider = TracerProvider(resource=resource)
         exporter = OTLPSpanExporter(endpoint=otlp_endpoint)
         provider.add_span_processor(BatchSpanProcessor(exporter))
 
         trace.set_tracer_provider(provider)
-        logger.info("MLflow OpenTelemetry tracing initialized: %s", otlp_endpoint)
+        logger.info("MLflow tracing initialized on experiment '%s' at %s", exp, uri)
         return True
     except Exception as exc:
         logger.warning("Could not initialize MLflow tracing: %s", exc)

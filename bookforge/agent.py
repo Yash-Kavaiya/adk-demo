@@ -13,7 +13,7 @@ from bookforge.integrations.mlflow_integration import setup_mlflow_tracing
 # Automatically stream ADK Web UI traces to MLflow
 setup_mlflow_tracing(
     tracking_uri=os.getenv("MLFLOW_TRACKING_URI", "http://127.0.0.1:5000"),
-    experiment_name="bookforge-adk",
+    experiment_name=os.getenv("MLFLOW_EXPERIMENT_NAME", "my-experiment"),
 )
 
 root_agent = build_root_agent(get_settings())
