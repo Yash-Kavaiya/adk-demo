@@ -219,7 +219,8 @@ func ChapterWrapper(preamble, body string) string {
 func AssembleMainTex(bookTitle, authorLine string, chapterPaths []string) string {
 	var inputs []string
 	for _, path := range chapterPaths {
-		inputs = append(inputs, fmt.Sprintf(`\input{%s/chapter.tex}`, path))
+		cleanPath := strings.ReplaceAll(path, "\\", "/")
+		inputs = append(inputs, fmt.Sprintf(`\input{%s/chapter.tex}`, cleanPath))
 	}
 	
 	chaptersBlock := strings.Join(inputs, "\n\n")
