@@ -1,0 +1,94 @@
+Public emails found — Aishwarya Srinivasan + Arvind Narayanamurthy
+Date checked: 2026-08-24
+LinkedIn profiles were login-walled. No personal emails were taken from LinkedIn.
+There is no local "agent reach" skill. Sources: official sites, Maven, GitHub public commits, DNS MX.
+
+============================================================
+AISHWARYA SRINIVASAN
+https://www.linkedin.com/in/aishwarya-srinivasan/
+============================================================
+
+USE THESE (published on official course/site pages)
+
+1) aish@thegenacademy.com
+   Source: Maven school contact_email, show_contact=true
+   https://maven.com/aishwarya-srinivasan
+   https://maven.com/aishwarya-srinivasan/mastering-ai-agents
+
+2) aishwarya@thegenacademy.com
+   Source: Maven instructorContactEmail + visible mailto button on the course page
+   https://maven.com/aishwarya-srinivasan/mastering-ai-agents
+
+3) support@thegenacademy.com
+   Source: Maven course page text "Email us-" mailto
+   Best for academy inbox / forwarding to the teaching team
+
+4) partnerships@illuminate-ai.org
+   Source: mailto on her site https://aishwarya.ai/
+   Partnerships / collabs, not the academy teaching inbox
+
+Domain MX: thegenacademy.com and illuminate-ai.org both route to Google mail.
+
+DO NOT USE
+- asrinivasan@thumbtack.com — different GitHub user (eaishwa), not this Aishwarya
+
+============================================================
+ARVIND NARAYANAMURTHY
+https://www.linkedin.com/in/arvindna/
+============================================================
+
+NO official The Gen Academy personal email is published.
+Maven instructor card for Arvind only has LinkedIn. The mailto on that page is Aishwarya’s: aishwarya@thegenacademy.com
+
+Closest public professional address:
+- arvind@eikosdata.com
+  Source: git author on his public GitHub https://github.com/Arvind-Narayan
+  Repos: PO-Invoice-Mgmt, LangChain-Langgraph-Quickstart, MMX-Modelling, Arvind-Narayan
+  eikosdata.com has Google MX (mailbox domain is live) but the website 404s
+  Matches Eikos Health founder bio on Maven
+
+Personal Gmail in the same GitHub account (do not lead with this):
+- 92.arvind@gmail.com
+  Public git author only. Not a published contact page.
+
+============================================================
+RECOMMENDED SEND ORDER
+============================================================
+
+To: aish@thegenacademy.com, aishwarya@thegenacademy.com
+Cc: support@thegenacademy.com
+Optional extra To if you also want Arvind: arvind@eikosdata.com
+Attach: C:\Users\yashk\Downloads\adk-demo\data\the-gen-academy-ai-explained\book\book.pdf
+Do not paste a file:// path.
+
+============================================================
+READY EMAIL
+============================================================
+
+To: aish@thegenacademy.com, aishwarya@thegenacademy.com
+Cc: support@thegenacademy.com
+Subject: Sample work for The Gen Academy: companion book from the AI Explained playlist
+
+Hello Aishwarya and Arvind,
+
+I have been learning from the AI Explained series. As a sample of how I use AI agents to automate real work, I turned that 11-video playlist into a structured companion book.
+
+What I built
+- Source: the AI Explained playlist (agents, RAG, embeddings, TTS, vector databases, fine-tuning, agentic AI, forward-deployed engineering, Claude Cowork, and multi-agent systems)
+- Output: The Gen Academy | AI Explained — The Complete Book (11 chapters, 206 pages)
+- How: a Google ADK multi-agent pipeline that transcribes, writes, QA-checks, and compiles to PDF
+
+This is sample work, not a commercial product. The teaching is yours. I built it to show I can take content operations and turn them into agent workflows that produce something learners can actually use — notes, companion chapters, and other materials that sit next to a live course like Mastering Agentic AI.
+
+I would like to contribute to The Gen Academy: automating curriculum support, companion notes, or other high-leverage work so the team can create more impact with less manual production.
+
+The PDF is attached. I can also do a short walkthrough if useful.
+
+Thank you for your time.
+
+Best regards,
+Yash Kavaiya
+Pune
+https://www.linkedin.com/in/yashkavaiya
+https://github.com/Yash-Kavaiya
+Pipeline: https://github.com/Yash-Kavaiya/adk-demo

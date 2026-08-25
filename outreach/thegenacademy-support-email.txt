@@ -1,0 +1,41 @@
+Email to The Gen Academy support
+To: support@thegenacademy.com
+Attach: C:\Users\yashk\Downloads\adk-demo\data\the-gen-academy-ai-explained\book\book.pdf
+Do NOT paste a file:// path. Attach the PDF.
+Do NOT paste the private Drive link unless you first share it.
+
+============================================================
+SUBJECT
+============================================================
+
+Sample work for The Gen Academy: companion book from Aishwarya’s AI Explained playlist
+
+============================================================
+BODY
+============================================================
+
+Hello The Gen Academy team,
+
+Could you please forward this to Aishwarya Srinivasan and the teaching team?
+
+I have been learning from Aishwarya’s AI Explained series. As a sample of how I use AI agents to automate real work, I turned that 11-video playlist into a structured companion book.
+
+What I built
+- Source: the AI Explained playlist (agents, RAG, embeddings, TTS, vector databases, fine-tuning, agentic AI, forward-deployed engineering, Claude Cowork, and multi-agent systems)
+- Output: The Gen Academy | AI Explained — The Complete Book (11 chapters, 206 pages)
+- How: a Google ADK multi-agent pipeline that transcribes, writes, QA-checks, and compiles to PDF
+
+This is sample work, not a commercial product. The teaching is yours. I built it to show I can take content operations and turn them into agent workflows that produce something learners can actually use — notes, companion chapters, and other materials that sit next to a live course like Mastering Agentic AI.
+
+I would like to contribute to The Gen Academy: automating curriculum support, companion notes, or other high-leverage work so the team can create more impact with less manual production.
+
+The PDF is attached. I can also do a short walkthrough if useful.
+
+Thank you for your time.
+
+Best regards,
+Yash Kavaiya
+Pune
+https://www.linkedin.com/in/yashkavaiya
+https://github.com/Yash-Kavaiya
+Pipeline: https://github.com/Yash-Kavaiya/adk-demo

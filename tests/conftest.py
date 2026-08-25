@@ -1,5 +1,6 @@
 """Shared fixtures for BookForge tests."""
 
+import os
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,9 @@ import pytest
 from bookforge.config import Settings
 from bookforge.schemas import VideoRecord
 from bookforge.tools.workspace import Workspace
+
+# Keep unit tests offline: importing bookforge.agent would otherwise try MLflow.
+os.environ.setdefault("BOOKFORGE_DISABLE_MLFLOW_TRACING", "1")
 
 
 @pytest.fixture

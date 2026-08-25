@@ -1,0 +1,211 @@
+[
+  {
+    "num": "1",
+    "title": "Code with Claude 2026: Opening Keynote",
+    "channel": "Claude",
+    "duration": 2849,
+    "view_count": 244424,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\01.jpg",
+    "url": "https://youtu.be/GMIWm5y90xA",
+    "thumb_bytes": 73927
+  },
+  {
+    "num": "2",
+    "title": "A conversation with Dario Amodei & Daniela Amodei",
+    "channel": "Claude",
+    "duration": 1990,
+    "view_count": 76788,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\02.jpg",
+    "url": "https://youtu.be/7xco5Qd2Oo8",
+    "thumb_bytes": 95187
+  },
+  {
+    "num": "3",
+    "title": "What's new in Claude Code",
+    "channel": "Claude",
+    "duration": 1496,
+    "view_count": 67928,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\03.jpg",
+    "url": "https://youtu.be/IMZa42k6L6M",
+    "thumb_bytes": 56636
+  },
+  {
+    "num": "4",
+    "title": "Live coding session with Boris Cherny and Jarred Sumner",
+    "channel": "Claude",
+    "duration": 1920,
+    "view_count": 116421,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\04.jpg",
+    "url": "https://youtu.be/DlTCu_pNDHE",
+    "thumb_bytes": 70849
+  },
+  {
+    "num": "5",
+    "title": "Caching, harnesses, and advisors: Building on Claude at GitHub scale",
+    "channel": "Claude",
+    "duration": 1575,
+    "view_count": 18087,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\05.jpg",
+    "url": "https://youtu.be/y5TmF_6o6xk",
+    "thumb_bytes": 90221
+  },
+  {
+    "num": "6",
+    "title": "How to get to production faster with Claude Managed Agents",
+    "channel": "Claude",
+    "duration": 1045,
+    "view_count": 26666,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\06.jpg",
+    "url": "https://youtu.be/E9gaQHrw_rg",
+    "thumb_bytes": 94677
+  },
+  {
+    "num": "7",
+    "title": "Building AI-native: Inside the stacks powering Cognition, Gamma, and Harvey",
+    "channel": "Claude",
+    "duration": 1695,
+    "view_count": 10339,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\07.jpg",
+    "url": "https://youtu.be/OFDm3T7pVlc",
+    "thumb_bytes": 87510
+  },
+  {
+    "num": "8",
+    "title": "Getting more out of the Claude Platform",
+    "channel": "Claude",
+    "duration": 1695,
+    "view_count": 17782,
+    "upload_date": "20260507",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\08.jpg",
+    "url": "https://youtu.be/7oO37GRhwGk",
+    "thumb_bytes": 70566
+  },
+  {
+    "num": "9",
+    "title": "How Datadog built a universal machine tool for Claude Code",
+    "channel": "Claude",
+    "duration": 1850,
+    "view_count": 9314,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\09.jpg",
+    "url": "https://youtu.be/EdmuYPBt_EM",
+    "thumb_bytes": 100824
+  },
+  {
+    "num": "10",
+    "title": "The capability curve",
+    "channel": "Claude",
+    "duration": 905,
+    "view_count": 13880,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\10.jpg",
+    "url": "https://youtu.be/tP4MGcJ80Y0",
+    "thumb_bytes": 57031
+  },
+  {
+    "num": "11",
+    "title": "Architecting for model step-changes: A fireside with Vercel's Guillermo Rauch",
+    "channel": "Claude",
+    "duration": 1635,
+    "view_count": 6047,
+    "upload_date": "20260506",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\11.jpg",
+    "url": "https://youtu.be/bJKdXhnw7NU",
+    "thumb_bytes": 103334
+  },
+  {
+    "num": "12",
+    "title": "Building with Claude Managed Agents and Asana AI teammates",
+    "channel": "Claude",
+    "duration": 1497,
+    "view_count": 8426,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\12.jpg",
+    "url": "https://youtu.be/BrpB-h1e--k",
+    "thumb_bytes": 90958
+  },
+  {
+    "num": "13",
+    "title": "Running an AI-native engineering org",
+    "channel": "Claude",
+    "duration": 1718,
+    "view_count": 99513,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\13.jpg",
+    "url": "https://youtu.be/igO8iyca2_g",
+    "thumb_bytes": 74011
+  },
+  {
+    "num": "14",
+    "title": "The thinking lever",
+    "channel": "Claude",
+    "duration": 1442,
+    "view_count": 15851,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\14.jpg",
+    "url": "https://youtu.be/OXJO4LldSnc",
+    "thumb_bytes": 54612
+  },
+  {
+    "num": "15",
+    "title": "Building with Claude on Google Cloud",
+    "channel": "Claude",
+    "duration": 1589,
+    "view_count": 29438,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\15.jpg",
+    "url": "https://youtu.be/SqHsS737CeA",
+    "thumb_bytes": 68749
+  },
+  {
+    "num": "16",
+    "title": "Evaluating and improving Replit Agent at scale",
+    "channel": "Claude",
+    "duration": 1662,
+    "view_count": 3217,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\16.jpg",
+    "url": "https://youtu.be/snroDwX1-JU",
+    "thumb_bytes": 89346
+  },
+  {
+    "num": "17",
+    "title": "Giving coding agents their own computers: How Cursor built cloud agents",
+    "channel": "Claude",
+    "duration": 875,
+    "view_count": 6079,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\17.jpg",
+    "url": "https://youtu.be/BbYSGxtsMic",
+    "thumb_bytes": 88446
+  },
+  {
+    "num": "18",
+    "title": "Memory and dreaming for self-learning agents",
+    "channel": "Claude",
+    "duration": 1468,
+    "view_count": 87530,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\18.jpg",
+    "url": "https://youtu.be/RtywqDFBYnQ",
+    "thumb_bytes": 87088
+  },
+  {
+    "num": "19",
+    "title": "The expanding toolkit",
+    "channel": "Claude",
+    "duration": 1282,
+    "view_count": 12213,
+    "upload_date": "20260508",
+    "thumb_file": "C:\\Users\\yashk\\Downloads\\adk-demo\\code-w-claude\\thumbs\\19.jpg",
+    "url": "https://youtu.be/KLCuxMDZSDg",
+    "thumb_bytes": 63622
+  }
+]

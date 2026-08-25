@@ -8,3 +8,6 @@ venv/
 data/
 *.log
 bookforge/.adk/
+*.exe
+*.db
+mlflow.db

@@ -21,12 +21,16 @@ if hasattr(sys.stderr, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 from google.adk.runners import Runner
-from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from bookforge.agents.orchestrator import build_root_agent
 from bookforge.config import Settings, get_settings
-from bookforge.integrations.mlflow_integration import setup_mlflow_tracing
+from bookforge.integrations.mlflow_integration import (
+    ADK_WEB_USER_ID,
+    create_session_service,
+    flush_mlflow_tracing,
+    setup_mlflow_tracing,
+)
 
 logger = logging.getLogger("bookforge")
 
@@ -111,7 +115,8 @@ async def run(args: argparse.Namespace) -> int:
     for w in warnings:
         logger.warning(w)
 
-    session_service = InMemorySessionService()
+    # Same SQLite store + user id as `adk web`, so the session appears in the UI.
+    session_service = create_session_service()
     runner = Runner(
         agent=build_root_agent(settings),
         app_name="bookforge",
@@ -120,7 +125,7 @@ async def run(args: argparse.Namespace) -> int:
 
     session_id = args.session or f"run-{uuid.uuid4().hex[:8]}"
     session = await session_service.create_session(
-        app_name="bookforge", user_id="local", session_id=session_id
+        app_name="bookforge", user_id=ADK_WEB_USER_ID, session_id=session_id
     )
     logger.info("session %s | workspace: %s", session_id, settings.workspace_root_abs)
 
@@ -136,7 +141,7 @@ async def run(args: argparse.Namespace) -> int:
     exit_code = 0
     try:
         async for event in runner.run_async(
-            user_id="local", session_id=session.id, new_message=user_msg
+            user_id=ADK_WEB_USER_ID, session_id=session.id, new_message=user_msg
         ):
             if event.content and event.content.parts:
                 text = "".join(p.text or "" for p in event.content.parts).strip()
@@ -146,9 +151,11 @@ async def run(args: argparse.Namespace) -> int:
         logger.exception("pipeline aborted")
         print(f"ERROR: {exc}", file=sys.stderr)
         exit_code = 1
+    finally:
+        flush_mlflow_tracing()
 
     final = await session_service.get_session(
-        app_name="bookforge", user_id="local", session_id=session_id
+        app_name="bookforge", user_id=ADK_WEB_USER_ID, session_id=session_id
     )
     final_state = dict(final.state or {}) if final else {}
     book_pdf = final_state.get("book_pdf")

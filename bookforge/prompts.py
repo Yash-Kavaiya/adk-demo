@@ -2,7 +2,7 @@
 
 IMPORTANT: ADK injects session state into instructions via {placeholder}
 syntax. Any literal brace-wrapped word (e.g. a LaTeX snippet like
-\\chapter{Title}) would be parsed as a placeholder and crash injection.
+\\\\chapter{Title}) would be parsed as a placeholder and crash injection.
 Therefore these templates contain NO literal LaTeX braces — describe the
 markup in words instead.
 """
@@ -70,16 +70,16 @@ Compose the chapter in this exact section order:
 - "Conceptual Models" — render EVERY diagram spec from the analysis as a clean, publication-grade TikZ diagram:
   * Use the predefined styles: `modernbox` (main steps/components), `accentbox` (target/output states), `neutralbox` (data/cache/secondary), and `flowarrow` (transitions).
   * Always use structured layout: top-to-bottom (`below=1.2cm of ...`) or left-to-right (`right=1.8cm of ...`). Do NOT chain complex multi-axis diagonal offsets.
-  * Node text: Set explicit text wrapping (e.g. `text width=3.2cm, align=center`) with max 4-7 words per box so text never clips or overcuts.
-  * Add clear label descriptors along arrows (e.g. `node[above, font=\footnotesize] {label}`).
-  * Wrap each diagram in a `figure[htbp]` environment with `\centering`, descriptive `\caption`, and `\label`.
+  * Node text: Set explicit text wrapping (text width 3.2cm, align center) with max 4-7 words per box so text never clips or overcuts.
+  * Add clear label descriptors along arrows (TikZ node above the arrow, footnotesize font, containing the edge-label text — never wrap that example in curly braces here).
+  * Wrap each diagram in a figure environment (placement htbp) with centering, a descriptive caption command, and a label command.
 - "Key Takeaways" — itemize of the most important points across concepts.
 - "Glossary" — description list of every glossary entry.
 - "Exercises" — enumerate of questions; answers in a final unnumbered
   "Solutions" section.
 
 Typesetting & Overflow rules:
-- Text should NEVER overflow margins (no overfull hbox). Break long technical URLs or code identifiers using `\texttt{...}` with appropriate linebreaks or hyphenation.
+- Text should NEVER overflow margins (no overfull hbox). Break long technical URLs or code identifiers using a texttt command with appropriate linebreaks or hyphenation.
 - Escape special characters in prose: percent, ampersand, hash, underscore, dollar, angle brackets.
 - Use booktabs rules only inside the provided table fragments; your own text
   uses standard environments: itemize, enumerate, description, figure, center.

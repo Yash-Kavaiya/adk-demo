@@ -43,6 +43,19 @@ class BookCompilerAgent(BaseAgent):
         if not completed:
             raise RuntimeError("No completed chapters — nothing to compile.")
 
+        yield Event(
+            author=self.name,
+            content=types.Content(
+                role="model",
+                parts=[
+                    types.Part(
+                        text=f"Compiling book from {len(completed)} completed chapters "
+                        f"({len(failed)} failed excluded). This can take a few minutes."
+                    )
+                ],
+            ),
+        )
+
         chapter_rel_dirs = []
         for record in completed:
             chapter_dir = ws.chapter_dir(record)

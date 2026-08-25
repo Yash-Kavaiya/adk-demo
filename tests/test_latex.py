@@ -20,8 +20,8 @@ def test_render_table_fragment(tmp_path):
     )
     frag = latex.render_table_fragment(spec, tmp_path / "table_1.tex")
     body = frag.read_text(encoding="utf-8")
-    assert "\\toprule" in body and "\\bottomrule" in body
-    assert "Optimizers compared \\& ranked" in body
+    assert r"\toprule" in body and r"\bottomrule" in body
+    assert r"Optimizers compared \& ranked" in body
     assert "Adam & 1e-3" in body
 
 
@@ -37,6 +37,14 @@ def test_render_chart_pdf(tmp_path):
     )
     pdf = latex.render_chart(spec, tmp_path / "chart_1.pdf")
     assert pdf.exists() and pdf.read_bytes()[:5] == b"%PDF-"
+
+
+def test_sanitize_fixes_htmlish_end_figure():
+    messy = r"\begin{figure}[htbp]\centering\includegraphics{f.jpg}\end{figure>" + "\n"
+    clean = latex.sanitize_chapter_tex(messy)
+    assert r"\end{figure}" in clean
+    assert r"\end{figure>" not in clean
+    assert r"\textbackslash{}" in latex.sanitize_chapter_tex(r"use \backslash foo")
 
 
 def test_sanitize_chapter_tex():

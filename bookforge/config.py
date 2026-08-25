@@ -41,9 +41,10 @@ class Settings(BaseSettings):
     qa_max_iterations: int = 3
     compile_latex: bool = True  # disable on hosts without pdflatex
 
-    # --- Parallelization (opt-in for safety) ------------------------------
-    max_concurrent_videos: int = 1  # 1=sequential (safe default), 2-3=parallel
-    enable_parallel_videos: bool = False  # explicit opt-in required
+    # --- Parallelization ---------------------------------------------------
+    max_concurrent_videos: int = 1  # kept for compatibility; ADK graph is sequential
+    enable_parallel_videos: bool = False
+    media_prefetch_concurrency: int = 3  # upcoming videos downloaded/transcribed in parallel
 
     # --- Housekeeping ------------------------------------------------------
     workspace_root: Path = Path("data")

@@ -1,0 +1,45 @@
+LinkedIn outreach — Aishwarya Srinivasan / The Gen AI Academy
+Profile: https://www.linkedin.com/in/aishwarya-srinivasan/
+Book (local): C:\Users\yashk\Downloads\adk-demo\data\the-gen-academy-ai-explained\book\book.pdf
+Book (your Drive, private): https://drive.google.com/file/d/1QWqv7ZnX6XEAABhEfvWYRvheN_aJl93J/view?usp=drivesdk
+Drive file id: 1QWqv7ZnX6XEAABhEfvWYRvheN_aJl93J
+
+Do NOT paste a file:// path. After she accepts, attach book.pdf.
+Do NOT paste the Drive link until it is shared (anyone-with-link or emailed to her).
+It is private in your Google account right now.
+
+============================================================
+1) CONNECTION REQUEST (203 characters — under 300 limit)
+============================================================
+
+Hi Aishwarya — I'm Yash. I turned your AI Explained playlist into an 11-chapter, 206-page companion book with a Google ADK agent pipeline. I'd like to bring that kind of automation to The Gen AI Academy.
+
+============================================================
+2) MESSAGE AFTER SHE ACCEPTS (or send now if already connected)
+============================================================
+
+Hi Aishwarya,
+
+I’ve been learning from your AI Explained series on The Gen Academy. As a sample of how I use AI agents to automate real work, I turned that playlist into a structured companion book.
+
+What I built
+- Source: your 11-video AI Explained playlist (agents, RAG, embeddings, TTS, vector databases, fine-tuning, agentic AI, forward-deployed engineering, Claude Cowork, multi-agent systems)
+- Output: The Gen Academy | AI Explained — The Complete Book (11 chapters, 206 pages)
+- How: a Google ADK multi-agent pipeline that transcribes, writes, QA-checks, and compiles to PDF
+
+This is sample work, not a commercial product. The teaching is yours. I built it to show I can take content operations and turn them into agent workflows that produce something people can actually use.
+
+I’m interested in contributing to The Gen AI Academy — automating curriculum, companion notes, or other high-leverage work. Happy to send the PDF and a 10-minute walkthrough if that’s useful.
+
+Yash Kavaiya
+Pune
+https://www.linkedin.com/in/yashkavaiya
+https://github.com/Yash-Kavaiya
+Pipeline repo: https://github.com/Yash-Kavaiya/adk-demo
+
+============================================================
+3) SHORTER DM (if you want one message only)
+============================================================
+
+Hi Aishwarya — I turned your AI Explained playlist into an 11-chapter, 206-page companion book using a Google ADK multi-agent pipeline. Sample work only; the teaching is yours. I’d like to help The Gen AI Academy automate content and create more of this kind of impact. I can share the PDF if useful.
+Yash Kavaiya | https://github.com/Yash-Kavaiya/adk-demo

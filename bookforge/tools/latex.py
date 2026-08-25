@@ -371,6 +371,9 @@ def sanitize_chapter_tex(tex: str) -> str:
     body = re.sub(r"<\s*table\s*>", r"\\begin{table}[htbp]", body, flags=re.IGNORECASE)
     body = re.sub(r"<\s*/?\s*(?:div|span|p|section|article)[^>]*>", "", body, flags=re.IGNORECASE)
 
+    # LLMs often close environments as \end{figure> (HTML leftover). Fix those.
+    body = re.sub(r"\\(begin|end)\{([A-Za-z*]+)>", r"\\\1{\2}", body)
+
     # Ensure tikzpicture has align=center or every node/.style={align=center} so \\ in node labels doesn't crash LR mode
     body = re.sub(
         r"\\begin\{tikzpicture\}(?:\[([^\]]*)\])?",
@@ -437,5 +440,8 @@ def sanitize_chapter_tex(tex: str) -> str:
     }
     for char, repl in unicode_map.items():
         body = body.replace(char, repl)
+
+    # Bare \backslash in prose is not valid text-mode TeX.
+    body = body.replace("\\backslash", "\\textbackslash{}")
 
     return body.strip() + "\n"
